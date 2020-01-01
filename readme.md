@@ -1,5 +1,7 @@
 # @feathersjs/hooks
 
+[![CI GitHub action](https://github.com/feathersjs/hooks/workflows/Node%20CI/badge.svg)](https://github.com/feathersjs/hooks/actions?query=workflow%3A%22Node+CI%22)
+
 `@feathersjs/hooks` brings Koa style asynchronous middleware to any asynchronous JavaScript or TypeScript function.
 
 ## Installation
