@@ -1,0 +1,15 @@
+{
+  "name": "@feathersjs/hooks",
+  "private": true,
+  "scripts": {
+    "install": "lerna bootstrap",
+    "publish": "lerna publish && git commit -am \"chore: Update version and changelog\" && git push origin master",
+    "lint": "tslint 'packages/**/src/*.ts' 'packages/**/test/*.ts' -c tslint.json --fix",
+    "test": "npm run lint && nyc lerna run test"
+  },
+  "devDependencies": {
+    "lerna": "^3.20.1",
+    "nyc": "^15.0.0",
+    "tslint": "^5.20.1"
+  }
+}

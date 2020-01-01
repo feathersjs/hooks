@@ -1,0 +1,49 @@
+{
+  "name": "@feathersjs/hooks",
+  "version": "0.0.0",
+  "description": "Async middleware for JavaScript and TypeScript",
+  "homepage": "https://feathersjs.com",
+  "keywords": [
+    "feathers",
+    "async"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/feathersjs/feathers.git"
+  },
+  "author": {
+    "name": "Feathers contributor",
+    "email": "hello@feathersjs.com",
+    "url": "https://feathersjs.com"
+  },
+  "contributors": [],
+  "bugs": {
+    "url": "https://github.com/feathersjs/feathers/issues"
+  },
+  "engines": {
+    "node": ">= 10"
+  },
+  "main": "lib/",
+  "types": "lib/",
+  "scripts": {
+    "prepublish": "npm run compile",
+    "compile": "shx rm -rf lib/ && tsc",
+    "test": "mocha --opts ../../mocha.opts --recursive test/**.test.ts test/**/*.test.ts"
+  },
+  "directories": {
+    "lib": "lib"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.2.7",
+    "@types/mocha": "^5.2.7",
+    "@types/node": "^13.1.2",
+    "mocha": "^6.2.2",
+    "shx": "^0.3.2",
+    "ts-node": "^8.5.4",
+    "typescript": "^3.7.4"
+  }
+}
