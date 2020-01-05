@@ -22,8 +22,10 @@ export function getMiddleware (target: any): Middleware[] {
 /**
  * The base hook context.
  */
-export class HookContext<T = any> {
+export class HookContext<T = any, C = any> {
   result?: T;
+  method?: string;
+  self: C;
   arguments: any[];
   [key: string]: any;
 
