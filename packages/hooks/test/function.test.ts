@@ -1,8 +1,7 @@
 import { strict as assert } from 'assert';
 import {
-  hooks, ORIGINAL, HOOKS, CONTEXT,
-  HookContext, initContext, createContext,
-  functionHooks, NextFunction
+  hooks, HookContext, functionHooks,
+  NextFunction, getMiddleware, withParams, registerMiddleware
 } from '../src/';
 
 describe('functionHooks', () => {
@@ -19,13 +18,11 @@ describe('functionHooks', () => {
     }
   });
 
-  it('returns a new function, sets ORIGINAL, HOOKS and CONTEXT', () => {
+  it('returns a new function, registers hooks', () => {
     const fn = hooks(hello, []) as any;
 
     assert.notDeepEqual(fn, hello);
-    assert.deepStrictEqual(fn[HOOKS], []);
-    assert.deepEqual(fn[ORIGINAL], hello);
-    assert.ok(fn[CONTEXT]);
+    assert.deepEqual(getMiddleware(fn), []);
   });
 
   it('can override arguments, has context', async () => {
@@ -72,9 +69,10 @@ describe('functionHooks', () => {
     assert.strictEqual(res, 'Hello There You!');
   });
 
-  it('maintains the function context', async () => {
-    const hook = async function (this: any, _ctx: HookContext, next: NextFunction) {
+  it('maintains the function context and sets context.self', async () => {
+    const hook = async function (this: any, context: HookContext, next: NextFunction) {
       assert.strictEqual(obj, this);
+      assert.strictEqual(context.self, obj);
       await next();
     };
     const obj = {
@@ -89,7 +87,36 @@ describe('functionHooks', () => {
     assert.strictEqual(res, 'Hi Dave');
   });
 
-  it('adds additional hooks to an existing function, uses original', async () => {
+  it('uses hooks from context object and its prototypes', async () => {
+    const o1 = { message: 'Hi' };
+    const o2 = Object.create(o1);
+
+    registerMiddleware(o1, [async (ctx, next) => {
+      ctx.arguments[0] += ' o1';
+
+      await next();
+    }]);
+
+    registerMiddleware(o2, [async (ctx, next) => {
+      ctx.arguments[0] += ' o2';
+
+      await next();
+    }]);
+
+    o2.sayHi = hooks(async function (this: any, name: string) {
+      return `${this.message} ${name}`;
+    }, [async (ctx, next) => {
+      ctx.arguments[0] += ' fn';
+
+      await next();
+    }]);
+
+    const res = await o2.sayHi('Dave');
+
+    assert.strictEqual(res, 'Hi Dave o1 o2 fn');
+  });
+
+  it('wraps an existing hooked function properly', async () => {
     const first = hooks(hello, [
       async (ctx, next) => {
         await next();
@@ -105,13 +132,9 @@ describe('functionHooks', () => {
       }
     ]);
 
-    assert.deepEqual((first as any)[ORIGINAL], hello);
-    assert.deepEqual((second as any)[ORIGINAL], hello);
-    assert.strictEqual((second as any)[HOOKS].length, 2);
-
     const result = await second('Dave');
 
-    assert.strictEqual(result, 'Hello Dave Second First');
+    assert.strictEqual(result, 'Hello Dave First Second');
   });
 
   it('creates context with params and converts to arguments', async () => {
@@ -123,7 +146,7 @@ describe('functionHooks', () => {
 
         await next();
       }
-    ], initContext('name'));
+    ], withParams('name'));
 
     assert.equal(await fn('Dave'), 'Hello Changed');
   });
@@ -135,35 +158,14 @@ describe('functionHooks', () => {
       await next();
     };
 
-    const fn = hooks(hello, [ modifyArgs ], initContext('name'));
+    const fn = hooks(hello, [ modifyArgs ], withParams('name'));
 
     await assert.rejects(() => fn('There'), {
       message: `Cannot assign to read only property '0' of object '[object Array]'`
     });
   });
 
-  it('uses a custom initContext', async () => {
-    const checkContext = async (ctx: HookContext, next: NextFunction) => {
-      assert.deepEqual(ctx.toJSON(), {
-        arguments: [ 'There' ],
-        test: 'me'
-      });
-      await next();
-    };
-
-    const fn = hooks(hello, [ checkContext ], () => {
-      const ctx = new HookContext();
-
-      ctx.test = 'me';
-
-      return ctx;
-    });
-    const res = await fn('There');
-
-    assert.strictEqual(res, 'Hello There');
-  });
-
-  it('can create and return an existing context', async () => {
+  it('can take and return an existing HookContext', async () => {
     const message = 'Custom message';
     const fn = hooks(hello, [
       async (ctx, next) => {
@@ -173,17 +175,16 @@ describe('functionHooks', () => {
         ctx.name = 'Changed';
         await next();
       }
-    ], initContext('name'));
+    ], withParams('name'));
 
-    const customContext = createContext(fn, { message });
-    // @ts-ignore
-    const resultContext = await fn('Dave', customContext);
+    const customContext = new HookContext({ message });
+    const resultContext: HookContext = await fn('Dave', customContext);
 
     assert.equal(resultContext, customContext);
-    assert.deepEqual(resultContext.toJSON(), {
+    assert.deepEqual(resultContext, new HookContext({
       message: 'Custom message',
       name: 'Changed',
       result: 'Hello Changed'
-    });
+    }));
   });
 });

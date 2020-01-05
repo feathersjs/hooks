@@ -1,5 +1,5 @@
 import { strict as assert } from 'assert';
-import { hooks, HookContext, initContext, NextFunction } from '../src';
+import { hooks, HookContext, NextFunction, withParams } from '../src';
 
 describe('objectHooks', () => {
   let obj: any;
@@ -32,10 +32,11 @@ describe('objectHooks', () => {
   it('hooks object with hook methods, sets method name', async () => {
     const hookedObj = hooks(obj, {
       sayHi: [async (ctx: HookContext, next: NextFunction) => {
-        assert.deepStrictEqual(ctx.toJSON(), {
+        assert.deepEqual(ctx, new HookContext({
+          self: obj,
           method: 'sayHi',
           arguments: [ 'David' ]
-        });
+        }));
 
         await next();
 
@@ -56,10 +57,11 @@ describe('objectHooks', () => {
   it('hooks object and allows to customize context for method', async () => {
     const hookedObj = hooks(obj, {
       sayHi: [async (ctx: HookContext, next: NextFunction) => {
-        assert.deepStrictEqual(ctx.toJSON(), {
+        assert.deepStrictEqual(ctx, new HookContext({
           method: 'sayHi',
-          name: 'David'
-        });
+          name: 'David',
+          self: obj
+        }));
 
         ctx.name = 'Dave';
 
@@ -73,7 +75,7 @@ describe('objectHooks', () => {
         await next();
       }]
     }, {
-      sayHi: initContext('name')
+      sayHi: withParams('name')
     });
 
     assert.strictEqual(obj, hookedObj);
@@ -81,7 +83,7 @@ describe('objectHooks', () => {
     assert.strictEqual(await hookedObj.addOne(1), 3);
   });
 
-  it('hooking multiple times combines hooks for methods', async () => {
+  it('hooking multiple times works properly', async () => {
     hooks(obj, {
       sayHi: [async (ctx: HookContext, next: NextFunction) => {
         await next();
@@ -98,7 +100,7 @@ describe('objectHooks', () => {
       }]
     });
 
-    assert.strictEqual(await obj.sayHi('David'), 'Hi David!?');
+    assert.strictEqual(await obj.sayHi('David'), 'Hi David?!');
   });
 
   it('throws an error when hooking invalid method', async () => {
@@ -117,10 +119,11 @@ describe('objectHooks', () => {
   it('hooking object on class adds to the prototype', async () => {
     hooks(DummyClass, {
       sayHi: [async (ctx: HookContext, next: NextFunction) => {
-        assert.deepStrictEqual(ctx.toJSON(), {
+        assert.deepStrictEqual(ctx, new HookContext({
+          self: instance,
           method: 'sayHi',
           arguments: [ 'David' ]
-        });
+        }));
 
         await next();
 
@@ -139,13 +142,14 @@ describe('objectHooks', () => {
     assert.strictEqual(await instance.addOne(1), 3);
   });
 
-  it('chains hooks with extended classes', async () => {
+  it('works with inheritance', async () => {
     hooks(DummyClass, {
       sayHi: [async (ctx: HookContext, next: NextFunction) => {
-        assert.deepStrictEqual(ctx.toJSON(), {
+        assert.deepStrictEqual(ctx, new HookContext({
           method: 'sayHi',
-          arguments: [ 'David' ]
-        });
+          arguments: [ 'David' ],
+          self: instance
+        }));
 
         await next();
 
@@ -165,6 +169,6 @@ describe('objectHooks', () => {
 
     const instance = new OtherDummy();
 
-    assert.strictEqual(await instance.sayHi('David'), 'Hi David!?');
+    assert.strictEqual(await instance.sayHi('David'), 'Hi David?!');
   });
 });

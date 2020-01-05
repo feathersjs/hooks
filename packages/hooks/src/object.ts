@@ -1,23 +1,24 @@
 import { Middleware } from './compose';
-import { ContextCreator, functionHooks, initContext } from './function';
+import { functionHooks } from './function';
+import { ContextUpdater, HookContext, withParams } from './base';
 
 export interface MiddlewareMap {
   [key: string]: Middleware[];
 }
 
-export interface ContextCreatorMap {
-  [key: string]: ContextCreator;
+export interface ContextUpdaterMap {
+  [key: string]: ContextUpdater;
 }
 
-export const objectHooks = (_obj: any, hookMap: MiddlewareMap, contextMap?: ContextCreatorMap) => {
+export const objectHooks = (_obj: any, hookMap: MiddlewareMap, contextMap?: ContextUpdaterMap) => {
   const obj = typeof _obj === 'function' ? _obj.prototype : _obj;
 
   return Object.keys(hookMap).reduce((result, method) => {
     const value = obj[method];
     const hooks = hookMap[method];
-    const createContext = (contextMap && contextMap[method]) || initContext();
-    const methodContext = (...args: any[]) => {
-      const ctx = createContext(...args);
+    const originalUpdateContext = (contextMap && contextMap[method]) || withParams();
+    const updateContext = (self: any, args: any[], context: HookContext<any>) => {
+      const ctx = originalUpdateContext(self, args, context);
 
       ctx.method = method;
 
@@ -28,7 +29,7 @@ export const objectHooks = (_obj: any, hookMap: MiddlewareMap, contextMap?: Cont
       throw new Error(`Can not apply hooks. '${method}' is not a function`);
     }
 
-    const fn = functionHooks(value, hooks, methodContext);
+    const fn = functionHooks(value, hooks, updateContext);
 
     result[method] = fn;
 
