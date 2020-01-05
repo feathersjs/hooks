@@ -2,16 +2,17 @@
 
 [![CI GitHub action](https://github.com/feathersjs/hooks/workflows/Node%20CI/badge.svg)](https://github.com/feathersjs/hooks/actions?query=workflow%3A%22Node+CI%22)
 
-`@feathersjs/hooks` brings middleware to any async JavaScript or TypeScript function. It allows to create composable and reusable workflows that can add things like
+`@feathersjs/hooks` brings middleware to any async JavaScript or TypeScript function. It allows to create composable and reusable workflows that can add
 
-- Logging
+- Logging 
 - Profiling
 - Validation
-- Caching
-- Checking permissions
+- Caching/Debouncing
+- Permissions
+- Data pre- and postprocessing
 - etc.
 
-To a function or class without having to change its original code.
+To a function or class without having to change its original code while also keeping things cleanly separated and testable.
 
 <!-- TOC -->
 
@@ -32,8 +33,10 @@ To a function or class without having to change its original code.
     - [Modifying the result](#modifying-the-result)
     - [Using named parameters](#using-named-parameters)
     - [Customizing and returning the context](#customizing-and-returning-the-context)
+  - [Best practises](#best-practises)
   - [More Examples](#more-examples)
-    - [Cache results](#cache-results)
+    - [Cache](#cache)
+    - [Permissions](#permissions)
   - [License](#license)
 
 <!-- /TOC -->
@@ -62,13 +65,15 @@ const logInformation = async (context, next) => {
   console.log(`Function '${context.method || '[no name]'}' returned '${context.result}' after ${end - start}ms`);
 }
 
-// Hooks can be used with a function like this:
-const sayHello = hooks(async name => {
+const sayHello = async name => {
   return `Hello ${name}!`;
-}, [ logInformation ]);
+}
+
+// Hooks can be used with a function like this:
+const hookSayHello = hooks(sayhello, [ logInformation ]);
 
 (async () => {
-  console.log(await sayHello('David'));
+  console.log(await hookSayHello('David'));
 })();
 
 // And on an object or class like this
@@ -134,7 +139,7 @@ class Hello {
 
 Middleware functions (or hook functions) take a `context` and an asynchronous `next` function as their parameters that allow it to wrap around another function.
 
-A middleware function can do things before calling `await next()` and after all other hooks and the function call return. It can also `try/catch` the `await next()` call to handle and modify errors. This is the same control flow as in [KoaJS](https://koajs.com/).
+A middleware function can do things before calling `await next()` and after all following middleware functions and the function call itself return. It can also `try/catch` the `await next()` call to handle and modify errors. This is the same control flow as in [KoaJS](https://koajs.com/).
 
 Each hook function wraps _around_ all other functions (like an onion). This means that the first registered middleware function will run first before `await next()` and as the very last after all following hooks.
 
@@ -414,7 +419,7 @@ const logMessage = async (context, next) => {
 };
 
 const sayHello = hooks(async (message, punctuationMark) => {
-  return `Hello ${message} ${punctuationMark}`;
+  return `Hello ${message}${punctuationMark}`;
 }, [ logMessage ], withParams('message', 'punctuationMark'));
 
 (async () => {
@@ -454,29 +459,61 @@ const customContext = new HookContext({
 })();
 ```
 
+## Best practises
+
+- Hooks can be registered at any time by calling `hooks` again but registration should be kept in one place for better visibility.
+- Decorators make the flow even more visible by putting it right next to the code the hooks are affecting.
+- The `context` will always be the same object in the hook flow. You can set any property on it.
+- If a parameter is an object, modifying that object will change the original parameter. This can cause subtle issues that are difficult to debug. Using the spread operator to add the new property and replacing the context property helps to avoid many of those problems:
+
+  ```js
+  const updateQuery = async (context, next) => {
+    // NOT: context.query.newProperty = 'something';
+
+    // Instead
+    context.query = {
+      ...context.query,
+      active: true
+    }
+
+    await next();
+  }
+
+  const findUser = hooks(async query => {
+    return collection.find(query);
+  }, [ updateQuery ], withParams('query'));
+  ```
+
 ## More Examples
 
-### Cache results
+### Cache
 
-The following example is a simple hook that caches the results of a function call and uses the cached value if available. This is useful e.g. for external Ajax requests:
+The following example is a simple hook that caches the results of a function call and uses the cached value. It will clear the cache every 5 seconds. This is useful for any kind of expensive method call like an external HTTP request:
 
 ```js
 const hooks = require('@feathersjs/hooks');
 const cache = () => {
-  const cacheData = {};
+  let cacheData = {};
+
+  // Reset entire cache every 5 seconds
+  setInterval(() => {
+    cacheData = {};
+  }, 5000);
   
-  return async (ctx, next) => {
+  return async (context, next) => {
     const key = JSON.stringify(ctx);
 
     if (cacheData[key]) {
-      ctx.result = cacheData[key];
-
-      return next();
+      // Setting context.result before `await next()`
+      // will skip the (expensive function call) and
+      // make it return the cached value
+      context.result = cacheData[key];
     }
 
     await next();
-
-    cacheData[key] = ctx.result;)
+    
+    // Set the cached value to the result
+    cacheData[key] = context.result;
   }
 }
 
@@ -487,22 +524,22 @@ const getData = hooks(async url => {
 await getData('http://url-that-takes-long-to-respond');
 ```
 
-As a decorator:
+### Permissions
+
+When passing e.g. a `user` object to a function call, hooks allow for a better separation of concerns by handling permissions in a hook:
 
 ```js
-import hooks from '@feathersjs/hooks';
-
-class Api {
-  @hooks([
-    logInformation,
-    cache()
-  ])
-  async getMessages () {
-    const { data } = axios.get('http://myserver.com/users');
-
-    return data;
+const checkPermission = name => async (context, next) => {
+  if (!context.user.permissions.includes(name)) {
+    throw new Error(`User does not have ${name} permission`);
   }
+
+  await next();
 }
+
+const deleteInvoice = hooks(async (id, user) => {
+  return collection.delete(id);
+}, [ checkPermission('admin') ], withParams('id', 'user'));
 ```
 
 ## License
