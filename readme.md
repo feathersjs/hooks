@@ -13,7 +13,28 @@
 
 To any function or class without having to change the original code.
 
-<!-- TOC -->autoauto- [@feathersjs/hooks](#feathersjshooks)auto  - [Installation](#installation)auto  - [Quick Example](#quick-example)auto    - [JavaScript](#javascript)auto    - [TypeScript](#typescript)auto  - [Documentation](#documentation)auto    - [Middleware](#middleware)auto    - [Function hooks](#function-hooks)auto    - [Object hooks](#object-hooks)auto    - [Class hooks](#class-hooks)auto  - [Hook Context](#hook-context)auto    - [Context properties](#context-properties)auto    - [Modifying the result](#modifying-the-result)auto    - [Using named parameters](#using-named-parameters)auto    - [Customizing and returning the context](#customizing-and-returning-the-context)auto  - [More Examples](#more-examples)auto    - [Cache results](#cache-results)auto  - [License](#license)autoauto<!-- /TOC -->
+<!-- TOC -->
+
+- [@feathersjs/hooks](#feathersjshooks)
+  - [Installation](#installation)
+  - [Quick Example](#quick-example)
+    - [JavaScript](#javascript)
+    - [TypeScript](#typescript)
+  - [Documentation](#documentation)
+    - [Middleware](#middleware)
+    - [Function hooks](#function-hooks)
+    - [Object hooks](#object-hooks)
+    - [Class hooks](#class-hooks)
+  - [Hook Context](#hook-context)
+    - [Context properties](#context-properties)
+    - [Modifying the result](#modifying-the-result)
+    - [Using named parameters](#using-named-parameters)
+    - [Customizing and returning the context](#customizing-and-returning-the-context)
+  - [More Examples](#more-examples)
+    - [Cache results](#cache-results)
+  - [License](#license)
+
+<!-- /TOC -->
 
 ## Installation
 
