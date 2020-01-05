@@ -25,7 +25,7 @@ export function hooks<F, T = any> (
 export function hooks (...args: any[]) {
   const [ target, _hooks, ...rest ] = args;
 
-  if (Array.isArray(_hooks)) {
+  if (Array.isArray(_hooks) && typeof target === 'function') {
     return functionHooks(target, _hooks, ...rest);
   }
 

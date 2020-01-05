@@ -171,4 +171,24 @@ describe('objectHooks', () => {
 
     assert.strictEqual(await instance.sayHi('David'), 'Hi David?!');
   });
+
+  it('works with object level hooks', async () => {
+    hooks(obj, [
+      async (ctx: HookContext, next: NextFunction) => {
+        await next();
+
+        ctx.result += '!';
+      }
+    ]);
+    
+    hooks(obj, {
+      sayHi: [async (ctx: HookContext, next: NextFunction) => {
+        await next();
+
+        ctx.result += '?';
+      }]
+    });
+
+    assert.equal(await obj.sayHi('Dave'), 'Hi Dave?!');
+  });
 });
