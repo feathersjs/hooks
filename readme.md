@@ -11,7 +11,7 @@
 - Checking permissions
 - etc.
 
-To any function or class without having to change the original code.
+To a function or class without having to change its original code.
 
 <!-- TOC -->
 
@@ -25,6 +25,8 @@ To any function or class without having to change the original code.
     - [Function hooks](#function-hooks)
     - [Object hooks](#object-hooks)
     - [Class hooks](#class-hooks)
+      - [JavaScript](#javascript-1)
+      - [TypeScript](#typescript-1)
   - [Hook Context](#hook-context)
     - [Context properties](#context-properties)
     - [Modifying the result](#modifying-the-result)
@@ -95,7 +97,7 @@ With the following options in the `tsconfig.json` enabled:
 "experimentalDecorators": true, /* Enables experimental support for ES7 decorators. */
 ```
 
-Hooks can also be used as a decorator:
+Hooks can be used as a decorator:
 
 ```ts
 import { hooks, HookContext, NextFunction } from '@feathersjs/hooks';
@@ -110,7 +112,6 @@ const logInformation = async (context: HookContext, next: NextFunction) => {
   console.log(`Function '${context.method || '[no name]'}' returned '${context.result}' after ${end - start}ms`);
 }
 
-// And on an object or class like this
 class Hello {
   @hooks([
     logInformation
@@ -135,7 +136,7 @@ Middleware functions (or hook functions) take a `context` and an asynchronous `n
 
 A middleware function can do things before calling `await next()` and after all other hooks and the function call return. It can also `try/catch` the `await next()` call to handle and modify errors. This is the same control flow as in [KoaJS](https://koajs.com/).
 
-Basically, each hook function wraps _around_ all other functions (like an onion). This means that the first registered middleware function will run first before `await next()` and as the very last after all following hooks after `await next()`.
+Each hook function wraps _around_ all other functions (like an onion). This means that the first registered middleware function will run first before `await next()` and as the very last after all following hooks.
 
 ![Hook function image]()
 
@@ -218,7 +219,7 @@ const wrappedSayHello = hooks(sayHello, [
 })();
 ```
 
-> __Important:__ A wrapped function will _always_ return a Promise even it is not `async`.
+> __Important:__ A wrapped function will _always_ return a Promise even it was not originally `async`.
 
 ### Object hooks
 
@@ -252,7 +253,7 @@ hooks(o, {
 });
 ```
 
-Hooks can also be registered at the object level which will run before any specific hooks on a hook enabled functions:
+Hooks can also be registered at the object level which will run before any specific hooks on a hook enabled function:
 
 ```js
 const { hooks } = require('@feathersjs/hooks');
@@ -284,7 +285,7 @@ hooks(o, {
 
 Similar to object hooks, class hooks modify the class (or class prototype). Just like for objects it is possible to register global hooks. Registering hooks also works with inheritance:
 
-__JavaScript:__
+#### JavaScript
 
 ```js
 const { hooks } = require('@feathersjs/hooks');
@@ -316,6 +317,7 @@ hooks(HappyHelloSayer.prototype, [
   }
 ]);
 
+// Methods can also be wrapped directly on the class
 hooks(HelloSayer, {
   sayHello: [async (context, next) => {
     console.log('Hook on HelloSayer.sayHello');
@@ -330,7 +332,9 @@ hooks(HelloSayer, {
 })();
 ```
 
-__TypeScript:__ (with decorators and inheritance)
+#### TypeScript
+
+With decorators and inheritance
 
 ```js
 import { hooks, HookContext, NextFunction } from '@feathersjs/hooks';
