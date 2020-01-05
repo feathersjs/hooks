@@ -28,13 +28,18 @@ describe('hookDecorator', () => {
           self: instance,
           name: expectedName
         }));
-  
+
         await next();
-  
+
         ctx.result += ' ResultFromMethodDecorator';
       }], withParams('name'))
       async sayHi (name: string) {
         return `Hi ${name}`;
+      }
+
+      @hooks([async (_ctx: HookContext, next: NextFunction) => next()])
+      async sayWorld () {
+        return 'World';
       }
     }
 

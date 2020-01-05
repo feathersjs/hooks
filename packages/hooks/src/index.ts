@@ -18,12 +18,8 @@ export function hooks<F, T = any> (
 export function hooks<T> (obj: T, hookMap: MiddlewareMap, contextMap?: ContextUpdaterMap): T;
 // @hooks(hooks)
 export function hooks<F, T = any> (
-  hooks: Array<Middleware<T>>
-): any;
-// @hooks(hooks, updateContext)
-export function hooks<F, T = any> (
   hooks: Array<Middleware<T>>,
-  updateContext: ContextUpdater<T>
+  updateContext?: ContextUpdater<T>
 ): any;
 // Fallthrough to actual implementation
 export function hooks (...args: any[]) {
