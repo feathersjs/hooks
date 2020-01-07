@@ -12,7 +12,7 @@
 - Data pre- and postprocessing
 - etc.
 
-To a function or class without having to change its original code while also keeping things cleanly separated and testable.
+To a function or class without having to change its original code while also keeping everything cleanly separated and testable.
 
 <!-- TOC -->
 
@@ -32,6 +32,7 @@ To a function or class without having to change its original code while also kee
     - [Context properties](#context-properties)
     - [Modifying the result](#modifying-the-result)
     - [Using named parameters](#using-named-parameters)
+    - [Calling the original](#calling-the-original)
     - [Customizing and returning the context](#customizing-and-returning-the-context)
   - [Best practises](#best-practises)
   - [More Examples](#more-examples)
@@ -55,7 +56,7 @@ The following example logs information about a function call:
 
 ```js
 const { hooks } = require('@feathersjs/hooks');
-const logInformation = async (context, next) => {
+const logRuntime = async (context, next) => {
   const start = new Date().getTime();
 
   await next();
@@ -70,7 +71,7 @@ const sayHello = async name => {
 }
 
 // Hooks can be used with a function like this:
-const hookSayHello = hooks(sayhello, [ logInformation ]);
+const hookSayHello = hooks(sayhello, [ logRuntime ]);
 
 (async () => {
   console.log(await hookSayHello('David'));
@@ -84,7 +85,7 @@ class Hello {
 }
 
 hooks(Hello, {
-  sayHi: [ logInformation ]
+  sayHi: [ logRuntime ]
 });
 
 (async () => {
@@ -96,18 +97,18 @@ hooks(Hello, {
 
 ### TypeScript
 
-With the following options in the `tsconfig.json` enabled:
+In addition to the normal JavaScript use, with the `experimentalDecorators` option in the `tsconfig.json` enabled
 
 ```json
 "experimentalDecorators": true, /* Enables experimental support for ES7 decorators. */
 ```
 
-Hooks can be used as a decorator:
+Hooks can also be registered using a decorator:
 
 ```ts
 import { hooks, HookContext, NextFunction } from '@feathersjs/hooks';
 
-const logInformation = async (context: HookContext, next: NextFunction) => {
+const logRuntime = async (context: HookContext, next: NextFunction) => {
   const start = new Date().getTime();
 
   await next();
@@ -119,7 +120,7 @@ const logInformation = async (context: HookContext, next: NextFunction) => {
 
 class Hello {
   @hooks([
-    logInformation
+    logRuntime
   ])
   async sayHi (name: string) {
     return `Hi ${name}`;
@@ -137,9 +138,9 @@ class Hello {
 
 ### Middleware
 
-Middleware functions (or hook functions) take a `context` and an asynchronous `next` function as their parameters that allow it to wrap around another function.
+Middleware functions (or hook functions) take a `context` and an asynchronous `next` function as their parameters. The `context` contains information about the function call (like the arguments, the result or `this` context) and the `next` function can be called to continue to the next hook or actual function.
 
-A middleware function can do things before calling `await next()` and after all following middleware functions and the function call itself return. It can also `try/catch` the `await next()` call to handle and modify errors. This is the same control flow as in [KoaJS](https://koajs.com/).
+A middleware function can do things before calling `await next()` and after all following middleware functions and the function call itself return. It can also `try/catch` the `await next()` call to handle and modify errors. This is the same control flow that the web framework [KoaJS](https://koajs.com/) uses for handling HTTP requests and response.
 
 Each hook function wraps _around_ all other functions (like an onion). This means that the first registered middleware function will run first before `await next()` and as the very last after all following hooks.
 
@@ -244,14 +245,14 @@ const o = {
 }
 
 hooks(o, {
-  sayHello: [ logInformation ],
-  sayHi: [ logInformation ]
+  sayHello: [ logRuntime ],
+  sayHi: [ logRuntime ]
 });
 
 // With `updateContext` and named parameters
 hooks(o, {
-  sayHello: [ logInformation ],
-  sayHi: [ logInformation ]
+  sayHello: [ logRuntime ],
+  sayHi: [ logRuntime ]
 }, {
   sayHello: withParams('name'),
   sayHi: withParams('name')
@@ -282,13 +283,15 @@ hooks(o, [
 ]);
 
 hooks(o, {
-  sayHi: [ logInformation ]
+  sayHi: [ logRuntime ]
 });
 ```
 
 ### Class hooks
 
-Similar to object hooks, class hooks modify the class (or class prototype). Just like for objects it is possible to register global hooks. Registering hooks also works with inheritance:
+Similar to object hooks, class hooks modify the class (or class prototype). Just like for objects it is possible to register hooks that are global to the class or object. Registering hooks also works with inheritance.
+
+> __Note:__ Object or class level global hooks will only run if the method itself has been enabled for hooks. This can be done by registering hooks with an empty array.
 
 #### JavaScript
 
@@ -360,6 +363,10 @@ class HelloSayer {
   async sayHello (name: string) {
     return `Hello ${name}`;
   }
+
+  async otherMethod () {
+    return 'This will not run any hooks';
+  }
 }
 
 @hooks([
@@ -381,6 +388,8 @@ class HappyHelloSayer extends HelloSayer {
   console.log(await happy.sayHello('David'));
 })();
 ```
+
+> __Note:__ Decorators only work on classes and class methods, not on functions. Standalone (arrow) functions require the [JavaScript function style](#function-hooks) hook registration.
 
 ## Hook Context
 
@@ -428,6 +437,34 @@ const sayHello = hooks(async (message, punctuationMark) => {
 ```
 
 > __Note:__ When using named parameters, `context.arguments` is read only.
+
+### Calling the original
+
+The original function without any hooks is available as `fn.original`:
+
+```js
+const { hooks } = require('@feathersjs/hooks');
+const emphasize = async (context, next) => {
+  await next();
+
+  context.result += '!!!';
+};
+const sayHello = hooks(async name => `Hello ${name}`, [ emphasize ]);
+
+const o = hooks({
+  async sayHi(name) {
+    return `Hi ${name}`;
+  }
+}, {
+  sayHi: [ emphasize ]
+});
+
+(async () => {
+  console.log(await sayHello.original('Dave')); // Hello Dave
+  // Originals on object need to be called with an explicit `this` context
+  console.log(await o.sayHi.original.call(o, 'David'))
+})();
+```
 
 ### Customizing and returning the context
 

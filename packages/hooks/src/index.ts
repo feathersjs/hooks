@@ -8,12 +8,16 @@ export * from './function';
 export * from './compose';
 export * from './base';
 
+export interface OriginalAddon<F> {
+  original: F;
+}
+
 // hooks(fn, hooks, updateContext?)
 export function hooks<F, T = any> (
   fn: F,
   hooks: Array<Middleware<T>>,
   updateContext?: ContextUpdater<T>
-): F&((...rest: any[]) => Promise<T>);
+): F&((...rest: any[]) => Promise<T>)&OriginalAddon<F>;
 // hooks(object, methodHookMap, methodUpdateContextMap?)
 export function hooks<T> (obj: T, hookMap: MiddlewareMap, contextMap?: ContextUpdaterMap): T;
 // @hooks(hooks)

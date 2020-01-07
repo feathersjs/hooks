@@ -180,7 +180,7 @@ describe('objectHooks', () => {
         ctx.result += '!';
       }
     ]);
-    
+
     hooks(obj, {
       sayHi: [async (ctx: HookContext, next: NextFunction) => {
         await next();
