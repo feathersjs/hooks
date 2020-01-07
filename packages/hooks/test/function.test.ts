@@ -40,6 +40,20 @@ describe('functionHooks', () => {
     assert.strictEqual(res, 'Hello There You');
   });
 
+  it('has fn.original', async () => {
+    const fn = hooks(hello, [
+      async (ctx: HookContext, next: NextFunction) => {
+        ctx.arguments[0] += ' You';
+
+        await next();
+      }
+    ]);
+
+    assert.equal(typeof fn.original, 'function');
+
+    assert.equal(await fn.original('Dave'), 'Hello Dave');
+  });
+
   it('can override context.result before, skips method call', async () => {
     const hello = async (_name: string) => {
       throw new Error('Should never get here');

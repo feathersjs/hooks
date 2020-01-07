@@ -39,7 +39,7 @@ export const functionHooks = <T = any>(
       ...getMiddleware(this),
       // The hook chain attached to this function
       ...getMiddleware(result),
-      // Runs the actual original method if `ctx.result` is not set
+      // Runs the actual original method if `ctx.result` is not already set
       (ctx, next) => {
         if (ctx.result === undefined) {
           return Promise.resolve(fn.apply(this, ctx.arguments)).then(result => {
