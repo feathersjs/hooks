@@ -27,8 +27,10 @@
   "main": "lib/",
   "types": "lib/",
   "scripts": {
-    "prepublish": "npm run compile",
+    "build:deno": "shx mkdir -p deno && node build/deno",
     "compile": "shx rm -rf lib/ && tsc",
+    "build": "npm run compile && npm run build:deno",
+    "prepublish": "npm run build",
     "test": "mocha --opts ../../mocha.opts --recursive test/**.test.ts test/**/*.test.ts"
   },
   "directories": {
