@@ -18,6 +18,8 @@ To a function or class without having to change its original code while also kee
 
 - [@feathersjs/hooks](#feathersjshooks)
   - [Installation](#installation)
+    - [Node](#node)
+    - [Deno](#deno)
   - [Quick Example](#quick-example)
     - [JavaScript](#javascript)
     - [TypeScript](#typescript)
@@ -44,9 +46,20 @@ To a function or class without having to change its original code while also kee
 
 ## Installation
 
+### Node
+
 ```
 npm install @feathersjs/hooks --save
+yarn add @feathersjs/hooks
 ```
+
+### Deno
+
+```
+import { hooks } from 'https://unpkg.com/@feathersjs/hooks@latest/deno/index.ts';
+```
+
+> __Note:__ You might want to replace `latest` with the actual version you want to use (e.g. `https://unpkg.com/@feathersjs/hooks@0.2.0/deno/index.ts`)
 
 ## Quick Example
 
