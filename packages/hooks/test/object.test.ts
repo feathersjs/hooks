@@ -56,26 +56,27 @@ describe('objectHooks', () => {
 
   it('hooks object and allows to customize context for method', async () => {
     const hookedObj = hooks(obj, {
-      sayHi: [async (ctx: HookContext, next: NextFunction) => {
-        assert.deepStrictEqual(ctx, new HookContext({
-          method: 'sayHi',
-          name: 'David',
-          self: obj
-        }));
+      sayHi: {
+        middleware: [async (ctx: HookContext, next: NextFunction) => {
+          assert.deepStrictEqual(ctx, new HookContext({
+            method: 'sayHi',
+            name: 'David',
+            self: obj
+          }));
 
-        ctx.name = 'Dave';
+          ctx.name = 'Dave';
 
-        await next();
+          await next();
 
-        ctx.result += '?';
-      }],
+          ctx.result += '?';
+        }],
+        context: withParams('name')
+      },
       addOne: [async (ctx: HookContext, next: NextFunction) => {
         ctx.arguments[0] += 1;
 
         await next();
       }]
-    }, {
-      sayHi: withParams('name')
     });
 
     assert.strictEqual(obj, hookedObj);
@@ -118,17 +119,20 @@ describe('objectHooks', () => {
 
   it('hooking object on class adds to the prototype', async () => {
     hooks(DummyClass, {
-      sayHi: [async (ctx: HookContext, next: NextFunction) => {
-        assert.deepStrictEqual(ctx, new HookContext({
-          self: instance,
-          method: 'sayHi',
-          arguments: [ 'David' ]
-        }));
+      sayHi: {
+        middleware: [async (ctx: HookContext, next: NextFunction) => {
+          assert.deepStrictEqual(ctx, new HookContext({
+            self: instance,
+            method: 'sayHi',
+            name: 'David'
+          }));
 
-        await next();
+          await next();
 
-        ctx.result += '?';
-      }],
+          ctx.result += '?';
+        }],
+        context: withParams('name')
+      },
       addOne: [async (ctx: HookContext, next: NextFunction) => {
         ctx.arguments[0] += 1;
 

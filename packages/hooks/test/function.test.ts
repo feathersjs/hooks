@@ -152,15 +152,18 @@ describe('functionHooks', () => {
   });
 
   it('creates context with params and converts to arguments', async () => {
-    const fn = hooks(hello, [
-      async (ctx, next) => {
-        assert.equal(ctx.name, 'Dave');
+    const fn = hooks(hello, {
+      middleware: [
+        async (ctx, next) => {
+          assert.equal(ctx.name, 'Dave');
 
-        ctx.name = 'Changed';
+          ctx.name = 'Changed';
 
-        await next();
-      }
-    ], withParams('name'));
+          await next();
+        }
+      ],
+      context: withParams('name')
+    });
 
     assert.equal(await fn('Dave'), 'Hello Changed');
   });
@@ -172,7 +175,10 @@ describe('functionHooks', () => {
       await next();
     };
 
-    const fn = hooks(hello, [ modifyArgs ], withParams('name'));
+    const fn = hooks(hello, {
+      middleware: [ modifyArgs ],
+      context: withParams('name')
+    });
 
     await assert.rejects(() => fn('There'), {
       message: `Cannot assign to read only property '0' of object '[object Array]'`
@@ -181,15 +187,18 @@ describe('functionHooks', () => {
 
   it('can take and return an existing HookContext', async () => {
     const message = 'Custom message';
-    const fn = hooks(hello, [
-      async (ctx, next) => {
-        assert.equal(ctx.name, 'Dave');
-        assert.equal(ctx.message, message);
+    const fn = hooks(hello, {
+      middleware: [
+        async (ctx, next) => {
+          assert.equal(ctx.name, 'Dave');
+          assert.equal(ctx.message, message);
 
-        ctx.name = 'Changed';
-        await next();
-      }
-    ], withParams('name'));
+          ctx.name = 'Changed';
+          await next();
+        }
+      ],
+      context: withParams('name')
+    });
 
     const customContext = new HookContext({ message });
     const resultContext: HookContext = await fn('Dave', customContext);
