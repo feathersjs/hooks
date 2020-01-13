@@ -1,7 +1,6 @@
 import { functionHooks } from './function';
-import { Middleware } from './compose';
-import { ContextUpdater } from './base';
-import { objectHooks, MiddlewareMap, ContextUpdaterMap } from './object';
+import { HookSettings } from './base';
+import { objectHooks, HookMap } from './object';
 import { hookDecorator } from './decorator';
 
 export * from './function';
@@ -12,30 +11,27 @@ export interface OriginalAddon<F> {
   original: F;
 }
 
-// hooks(fn, hooks, updateContext?)
+// hooks(fn, hookSettings)
 export function hooks<F, T = any> (
-  fn: F,
-  hooks: Array<Middleware<T>>,
-  updateContext?: ContextUpdater<T>
+  fn: F, hooks: HookSettings
 ): F&((...rest: any[]) => Promise<T>)&OriginalAddon<F>;
-// hooks(object, methodHookMap, methodUpdateContextMap?)
-export function hooks<T> (obj: T, hookMap: MiddlewareMap, contextMap?: ContextUpdaterMap): T;
-// @hooks(hooks)
-export function hooks<F, T = any> (
-  hooks: Array<Middleware<T>>,
-  updateContext?: ContextUpdater<T>
+// hooks(object, hookMap)
+export function hooks<O> (obj: O, hookMap: HookMap): O;
+// @hooks(hookSettings)
+export function hooks<T = any> (
+  hooks?: HookSettings
 ): any;
 // Fallthrough to actual implementation
 export function hooks (...args: any[]) {
-  const [ target, _hooks, ...rest ] = args;
+  const [ target, _hooks ] = args;
 
-  if (Array.isArray(_hooks) && typeof target === 'function') {
-    return functionHooks(target, _hooks, ...rest);
+  if (typeof target === 'function' && Array.isArray(_hooks.middleware || _hooks)) {
+    return functionHooks(target, _hooks);
   }
 
-  if (Array.isArray(target)) {
-    return hookDecorator(target, _hooks);
+  if (args.length === 2) {
+    return objectHooks(target, _hooks);
   }
 
-  return objectHooks(target, _hooks, ...rest);
+  return hookDecorator(target);
 }

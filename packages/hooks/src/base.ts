@@ -15,7 +15,7 @@ export function registerMiddleware<T> (target: T, middleware: Middleware[]) {
   return target;
 }
 
-export function getMiddleware (target: any): Middleware[] {
+export function getMiddleware<T> (target: any): Array<Middleware<T>> {
   return (target && target[HOOKS]) || [];
 }
 
@@ -39,6 +39,39 @@ export class HookContext<T = any, C = any> {
  * arguments of the function call.
  */
 export type ContextUpdater<T = any> = (self: any, args: any[], context: HookContext<T>) => HookContext<T>;
+/**
+ * A function that for a given function, calling context and arguments returns the list of hooks
+ */
+export type MiddlewareCollector<T = any> = (self: any, fn: any, args: any[]) => Array<Middleware<T>>;
+
+/**
+ * Available options when initializing hooks with more than just an array of middleware
+ */
+export interface FunctionHookOptions<T = any> {
+  middleware: Array<Middleware<T>>;
+  context: ContextUpdater<T>;
+  collect: MiddlewareCollector<T>;
+}
+
+export type HookSettings<T = any> = Array<Middleware<T>>|Partial<FunctionHookOptions>;
+
+export function defaultCollectMiddleware<T = any> (self: any, fn: any, _args: any[]) {
+  return [
+    ...getMiddleware<T>(self),
+    ...getMiddleware(fn)
+  ];
+}
+
+export function normalizeOptions<T = any> (opts: HookSettings): FunctionHookOptions<T> {
+  const options: Partial<FunctionHookOptions> = Array.isArray(opts) ? { middleware: opts } : opts;
+  const {
+    middleware = [],
+    context = withParams(),
+    collect = defaultCollectMiddleware
+  } = options;
+
+  return { middleware, context, collect };
+}
 
 /**
  * Returns a ContextUpdater function that turns function arguments like

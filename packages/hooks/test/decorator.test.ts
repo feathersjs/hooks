@@ -22,19 +22,27 @@ describe('hookDecorator', () => {
       ctx.result += ' ResultFromDummyClass';
     }])
     class DummyClass extends TopLevel {
-      @hooks([async (ctx: HookContext, next: NextFunction) => {
-        assert.deepStrictEqual(ctx, new HookContext({
-          method: 'sayHi',
-          self: instance,
-          name: expectedName
-        }));
+      @hooks({
+        middleware: [async (ctx: HookContext, next: NextFunction) => {
+          assert.deepStrictEqual(ctx, new HookContext({
+            method: 'sayHi',
+            self: instance,
+            name: expectedName
+          }));
 
-        await next();
+          await next();
 
-        ctx.result += ' ResultFromMethodDecorator';
-      }], withParams('name'))
+          ctx.result += ' ResultFromMethodDecorator';
+        }],
+        context: withParams('name')
+      })
       async sayHi (name: string) {
         return `Hi ${name}`;
+      }
+
+      @hooks()
+      async hookedFn () {
+        return 'Hooks with nothing';
       }
 
       @hooks([async (_ctx: HookContext, next: NextFunction) => next()])
@@ -51,10 +59,7 @@ describe('hookDecorator', () => {
   });
 
   it('error cases', () => {
-    assert.throws(() => hooks([], withParams('jkfds'))({}), {
-      message: 'Context can not be updated at the class decorator level. Remove updateContext parameter.'
-    });
-    assert.throws(() => hooks([], withParams('jkfds'))({}, 'test', {
+    assert.throws(() => hooks([])({}, 'test', {
       value: 'not a function'
     }), {
       message: `Can not apply hooks. 'test' is not a function`
