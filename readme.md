@@ -19,6 +19,7 @@ To a function or class without having to change its original code while also kee
 - [Installation](#installation)
   - [Node](#node)
   - [Deno](#deno)
+  - [Browser](#browser)
 - [Quick Example](#quick-example)
   - [JavaScript](#javascript)
   - [TypeScript](#typescript)
@@ -61,6 +62,16 @@ import { hooks } from 'https://unpkg.com/@feathersjs/hooks@latest/deno/index.ts'
 ```
 
 > __Note:__ You might want to replace `latest` with the actual version you want to use (e.g. `https://unpkg.com/@feathersjs/hooks@^0.2.0/deno/index.ts`)
+
+## Browser
+
+`@feathersjs/hooks` is compatible with any module loader like Webpack and can be included in the browser directly via:
+
+```html
+<script type="text/javascript" src="//unpkg.com/@feathersjs/hooks@^0.2.0/dist/hooks.js"></script>
+```
+
+Which will make a `hooks` global variable available.
 
 # Quick Example
 

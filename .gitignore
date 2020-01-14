@@ -63,4 +63,5 @@ typings/
 # Build folders
 lib/
 deno/
+dist/
 *.sqlite
