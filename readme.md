@@ -42,6 +42,7 @@ To a function or class without having to change its original code while also kee
 - [More Examples](#more-examples)
   - [Cache](#cache)
   - [Permissions](#permissions)
+  - [Cleaning up GraphQL resolvers](#cleaning-up-graphql-resolvers)
 - [License](#license)
 
 <!-- /TOC -->
@@ -699,6 +700,39 @@ const checkPermission = name => async (context, next) => {
 const deleteInvoice = hooks(async (id, user) => {
   return collection.delete(id);
 }, [ checkPermission('admin') ], withParams('id', 'user'));
+```
+
+## Cleaning up GraphQL resolvers
+
+The above examples can both be useful for speeding up and locking down existing [GraphQL resolvers](https://graphql.org/learn/execution/): 
+
+```js
+const { hooks, withParams } = require('@feathersjs/hooks');
+
+const checkPermission = name => async (ctx, next) => {
+  const { context } = ctx;
+  if (!context.user.permissions.includes(name)) {
+    throw new Error(`User does not have ${name} permission`);
+  }
+
+  await next();
+}
+
+const resolvers = {
+  Query: {
+    human: hooks(async (obj, args, context, info) => {
+      return context.db.loadHumanByID(args.id).then(
+        userData => new Human(userData)
+      )
+    }, {
+      context: withParams('obj', 'args', 'context', 'info'),
+      middleware: [
+        cache(),
+        checkPermission('admin')
+      ]
+    })
+  }
+}
 ```
 
 # License
