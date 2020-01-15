@@ -200,7 +200,7 @@ A middleware function can do things before calling `await next()` and after all 
 
 Each hook function wraps _around_ all other functions (like an onion). This means that the first registered middleware function will run first before `await next()` and as the very last after all following hooks.
 
-![Hook function image]()
+![Feathers hooks image](https://user-images.githubusercontent.com/338316/72454734-44e8d680-3776-11ea-90ed-c81b2d98e8e5.png)
 
 The following example:
 
@@ -261,6 +261,8 @@ Instead an array of middleware, an object with the following options can be pass
 - `collect` (*optional*) - A function `(self: any, fn: any, args: any[]) => Middleware[]` that returns all middleware functions for a function call. Usually does not need to be customized.
 
 ```js
+const { hooks, withParams } = require('@feathersjs/hooks');
+
 const sayHelloWithHooks = hooks(sayHello, {
   middleware: [
     hook1,
@@ -309,23 +311,23 @@ const wrappedSayHello = hooks(sayHello, [
 ]);
 
 (async () => {
-  console.log(await wrappedSayHello('David', 'L')); // Hello David L!
+  console.log(await wrappedSayHello('David', 'L')); // Hello David X
 })();
 ```
 
 ### Using named parameters
 
-It is also possible to turn the arguments into named parameters. In the above example we probably want to have `context.firstName` and `context.lastName` available. To do this, the [`context` option](#options) can be used with `params` like this:
+It is also possible to turn the arguments into named parameters. In the above example we probably want to have `context.firstName` and `context.lastName` available. To do this, the [`context` option](#options) can be used with `withParams` like this:
 
 ```js
-const { hooks, params } = require('@feathersjs/hooks');
+const { hooks, withParams } = require('@feathersjs/hooks');
 
 const sayHello = async (firstName, lastName) => {
   return `Hello ${firstName} ${lastName}!`;
 };
 
 const wrappedSayHello = hooks(sayHello, {
-  context: withParams('firstName', 'lastName')
+  context: withParams('firstName', 'lastName'),
   middleware: [
     async (context, next) => {
       // Now we can modify `context.lastName` instead
