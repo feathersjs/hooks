@@ -12,7 +12,7 @@
 - Data pre- and postprocessing
 - etc.
 
-To a function or class without having to change its original code while also keeping everything cleanly separated and testable.
+To a function or class without having to change its original code while also keeping everything cleanly separated and testable. See the [⚓ release post for a quick overview](https://blog.feathersjs.com/async-middleware-for-javascript-and-typescript-31a0f74c0d30).
 
 <!-- TOC -->
 
