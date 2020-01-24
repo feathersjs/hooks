@@ -5,7 +5,10 @@
   "homepage": "https://feathersjs.com",
   "keywords": [
     "feathers",
-    "async"
+    "hooks",
+    "hook",
+    "async",
+    "middleware"
   ],
   "license": "MIT",
   "repository": {
