@@ -216,18 +216,34 @@ describe('objectHooks', () => {
     class OtherDummy extends DummyClass {}
 
     hooks(OtherDummy, {
-      middleware: [
-        async (ctx, next) => {
-          assert.equal(ctx.name, 'Dave');
-          assert.equal(ctx.gna, 42);
+      sayHi: {
+        middleware: [
+          async (ctx, next) => {
+            assert.equal(ctx.name, 'Dave');
+            assert.equal(ctx.gna, 42);
 
-          await next();
-        }
-      ],
-      context: withProps({ gna: 42 })
+            await next();
+          }
+        ],
+        context: [withParams('name'), withProps({ gna: 42 })]
+      }
     });
 
     const instance = new OtherDummy();
+
+    hooks(instance, {
+      sayHi: {
+        middleware: [
+          async (ctx, next) => {
+            assert.equal(ctx.name, 'Dave');
+            assert.equal(ctx.app, 'ok');
+
+            await next();
+          }
+        ],
+        context: [withParams('name'), withProps({ app: 'ok' })]
+      }
+    });
 
     assert.equal(await instance.sayHi('Dave'), 'Hi Changed');
   });
