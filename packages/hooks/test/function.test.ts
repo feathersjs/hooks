@@ -205,24 +205,6 @@ describe('functionHooks', () => {
     assert.equal(await fn('Dave'), 'Hello Changed');
   });
 
-  it('uses multiple context updaters', async () => {
-    const fn = hooks(hello, {
-      middleware: [
-        async (ctx, next) => {
-          assert.equal(ctx.name, 'Dave');
-          assert.equal(ctx.gna, 42);
-
-          ctx.name = 'Changed';
-
-          await next();
-        }
-      ],
-      context: [withParams('name'), withProps({ gna: 42 })]
-    });
-
-    assert.equal(await fn('Dave'), 'Hello Changed');
-  });
-
   it('with named context ctx.arguments is frozen', async () => {
     const modifyArgs = async (ctx: HookContext, next: NextFunction) => {
       ctx.arguments[0] = 'Test';
