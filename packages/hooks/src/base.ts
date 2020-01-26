@@ -3,7 +3,6 @@ import { Middleware } from './compose';
 export const HOOKS: string = Symbol('@feathersjs/hooks') as any;
 
 /**
- *
  * @param target The target object or function
  * @param middleware
  */
@@ -38,7 +37,7 @@ export class HookContext<T = any, C = any> {
  * A function that updates the hook context with the `this` reference and
  * arguments of the function call.
  */
-export type ContextUpdater<T = any> = (self: any, args: any[], context: HookContext<T>) => HookContext<T>;
+export type ContextUpdater<T = any> = (self: any, fn: any, args: any[], context: HookContext<T>) => HookContext<T>;
 /**
  * A function that for a given function, calling context and arguments returns the list of hooks
  */
@@ -81,7 +80,7 @@ export function normalizeOptions<T = any> (opts: HookSettings): FunctionHookOpti
  * @param params The list of parameter names
  */
 export function withParams<T = any> (...params: string[]) {
-  return (self: any, args: any[], context: HookContext<T>) => {
+  return (self: any, _fn: any, args: any[], context: HookContext<T>) => {
     params.forEach((name, index) => {
       context[name] = args[index];
     });

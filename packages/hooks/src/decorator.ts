@@ -18,8 +18,8 @@ export const hookDecorator = <T> (hooks: HookSettings<T> = []) => {
     }
 
     const originalContext = options.context;
-    const context = (self: any, args: any[], context: HookContext<any>) => {
-      const ctx = originalContext(self, args, context);
+    const context = (self: any, fn: any, args: any[], context: HookContext) => {
+      const ctx = originalContext(self, fn, args, context);
 
       ctx.method = method;
 

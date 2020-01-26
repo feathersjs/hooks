@@ -17,8 +17,8 @@ export const objectHooks = (_obj: any, hooks: HookMap|Middleware[]) => {
     const value = obj[method];
     const options = normalizeOptions(hooks[method]);
     const originalContext = options.context;
-    const context = (self: any, args: any[], context: HookContext<any>) => {
-      const ctx = originalContext(self, args, context);
+    const context = (self: any, fn: any, args: any[], context: HookContext) => {
+      const ctx = originalContext(self, fn, args, context);
 
       ctx.method = method;
 
@@ -29,12 +29,10 @@ export const objectHooks = (_obj: any, hooks: HookMap|Middleware[]) => {
       throw new Error(`Can not apply hooks. '${method}' is not a function`);
     }
 
-    const fn = functionHooks(value, {
+    result[method] = functionHooks(value, {
       ...options,
       context
     });
-
-    result[method] = fn;
 
     return result;
   }, obj);
