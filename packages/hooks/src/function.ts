@@ -1,5 +1,12 @@
 import { compose, Middleware } from './compose';
-import { HookContext, registerMiddleware, normalizeOptions, HookSettings } from './base';
+import {
+  HookContext,
+  registerMiddleware,
+  registerContextUpdater,
+  normalizeOptions,
+  collectContextUpdaters,
+  HookSettings
+} from './base';
 
 /**
  * Returns a new function that is wrapped in the given hooks.
@@ -22,9 +29,15 @@ export const functionHooks = <F, T = any>(original: F, opts: HookSettings<T>) =>
     // If we got passed an existing HookContext instance, we want to return it as well
     const returnContext = args[args.length - 1] instanceof HookContext;
     // Initialize the context. Either the default context or the one that was passed
-    const baseContext: HookContext = returnContext ? args.pop() : new HookContext();
+    let context: HookContext = returnContext ? args.pop() : new HookContext();
+
+    const contextUpdaters = collectContextUpdaters(this, wrapper, args);
     // Initialize the context with the self reference and arguments
-    const context = updateContext(this, wrapper, args, baseContext);
+
+    for (const contextUpdater of contextUpdaters) {
+      context = contextUpdater(this, wrapper, args, context);
+    }
+
     // Assemble the hook chain
     const hookChain: Middleware[] = [
       // Return `ctx.result` or the context
@@ -48,6 +61,7 @@ export const functionHooks = <F, T = any>(original: F, opts: HookSettings<T>) =>
     return compose(hookChain).call(this, context);
   };
 
+  registerContextUpdater(wrapper, updateContext);
   registerMiddleware(wrapper, middleware);
 
   return Object.assign(wrapper, { original });

@@ -1,6 +1,7 @@
 import { Middleware } from './compose';
 
 export const HOOKS: string = Symbol('@feathersjs/hooks') as any;
+export const CONTEXT: string = Symbol('@feathersjs/hooks/context') as any;
 
 /**
  * @param target The target object or function
@@ -16,6 +17,22 @@ export function registerMiddleware<T> (target: T, middleware: Middleware[]) {
 
 export function getMiddleware<T> (target: any): Array<Middleware<T>> {
   return (target && target[HOOKS]) || [];
+}
+
+/**
+ * @param target The target object or function
+ * @param updaters
+ */
+export function registerContextUpdater<T> (target: T, updaters: ContextUpdater[]) {
+  const current: ContextUpdater[] = (target as any)[CONTEXT] || [];
+
+  (target as any)[CONTEXT] = current.concat(updaters);
+
+  return target;
+}
+
+export function getContextUpdater<T> (target: any): Array<ContextUpdater<T>> {
+  return (target && target[CONTEXT]) || [];
 }
 
 /**
@@ -48,11 +65,13 @@ export type MiddlewareCollector<T = any> = (self: any, fn: any, args: any[]) => 
  */
 export interface FunctionHookOptions<T = any> {
   middleware: Array<Middleware<T>>;
-  context: ContextUpdater<T>;
+  context: Array<ContextUpdater<T>>;
   collect: MiddlewareCollector<T>;
 }
 
-export type HookSettings<T = any> = Array<Middleware<T>>|Partial<FunctionHookOptions>;
+export type HookSettings<T = any> = Array<Middleware<T>>|Partial<Omit<FunctionHookOptions, 'context'> & {
+  context: ContextUpdater<T>|Array<ContextUpdater<T>>;
+}>;
 
 export function defaultCollectMiddleware<T = any> (self: any, fn: any, _args: any[]) {
   return [
@@ -61,7 +80,7 @@ export function defaultCollectMiddleware<T = any> (self: any, fn: any, _args: an
   ];
 }
 
-export function normalizeOptions<T = any> (opts: HookSettings): FunctionHookOptions<T> {
+export function normalizeOptions<T = any> (opts: any): FunctionHookOptions<T> {
   const options: Partial<FunctionHookOptions> = Array.isArray(opts) ? { middleware: opts } : opts;
   const {
     middleware = [],
@@ -69,7 +88,16 @@ export function normalizeOptions<T = any> (opts: HookSettings): FunctionHookOpti
     collect = defaultCollectMiddleware
   } = options;
 
-  return { middleware, context, collect };
+  const contextUpdaters = Array.isArray(context) ? context : [context];
+
+  return { middleware, context: contextUpdaters, collect };
+}
+
+export function collectContextUpdaters<T = any> (self: any, fn: any, _args: any[]) {
+  return [
+    ...getContextUpdater<T>(self),
+    ...getContextUpdater(fn)
+  ];
 }
 
 /**
@@ -100,6 +128,38 @@ export function withParams<T = any> (...params: string[]) {
     if (self) {
       context.self = self;
     }
+
+    return context;
+  };
+}
+
+/**
+ * Returns a ContextUpdater function that adds default values on the hook context
+ *
+ * @param defaults Default values
+ */
+export function withDefaults<T = any> (defaults: any) {
+  return (_self: any, _fn: any, _args: any[], context: HookContext<T>) => {
+    const keys = Object.keys(defaults);
+
+    for (const key of keys) {
+      if (context[key] === undefined) {
+        context[key] = defaults[key];
+      }
+    }
+
+    return context;
+  };
+}
+
+/**
+ * Returns a ContextUpdater function that adds props on the hook context
+ *
+ * @param props The props object to assign
+ */
+export function withProps<T = any> (props: any) {
+  return (_self: any, _fn: any, _args: any[], context: HookContext<T>) => {
+    Object.assign(context, props);
 
     return context;
   };
