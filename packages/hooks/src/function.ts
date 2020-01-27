@@ -1,5 +1,11 @@
 import { compose, Middleware } from './compose';
-import { HookContext, registerMiddleware, normalizeOptions, HookSettings } from './base';
+import {
+  HookContext,
+  registerMiddleware,
+  normalizeOptions,
+  HookSettings,
+  HOOK_ERROR
+} from './base';
 
 /**
  * Returns a new function that is wrapped in the given hooks.
@@ -9,7 +15,7 @@ import { HookContext, registerMiddleware, normalizeOptions, HookSettings } from 
  * and `context.self` to the function call `this` reference.
  *
  * @param original The function to wrap
- * @param options A list of hooks (middleware) or options for more detailed hook processing
+ * @param opts A list of hooks (middleware) or options for more detailed hook processing
  */
 export const functionHooks = <F, T = any>(original: F, opts: HookSettings<T>) => {
   if (typeof original !== 'function') {
@@ -27,7 +33,17 @@ export const functionHooks = <F, T = any>(original: F, opts: HookSettings<T>) =>
     // Assemble the hook chain
     const hookChain: Middleware[] = [
       // Return `ctx.result` or the context
-      (ctx, next) => next().then(() => returnContext ? ctx : ctx.result),
+      (ctx, next) => next()
+        .then(
+          () => returnContext ? ctx : ctx.result,
+          error => {
+            if (!returnContext) {
+              throw error;
+            }
+            ctx[HOOK_ERROR] = error;
+            throw ctx;
+          }
+        ),
       // Create the hook chain by calling the `collectMiddleware function
       ...collect(this, wrapper, args),
       // Runs the actual original method if `ctx.result` is not already set

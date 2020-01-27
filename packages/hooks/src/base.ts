@@ -1,6 +1,7 @@
 import { Middleware } from './compose';
 
 export const HOOKS: string = Symbol('@feathersjs/hooks') as any;
+export const HOOK_ERROR: string = Symbol('@feathersjs/hooks/error') as any;
 
 /**
  *

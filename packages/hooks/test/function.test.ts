@@ -1,11 +1,12 @@
 import { strict as assert } from 'assert';
 import {
   hooks, HookContext, functionHooks,
-  NextFunction, getMiddleware, withParams, registerMiddleware
+  NextFunction, getMiddleware, registerMiddleware,
+  withParams, HOOK_ERROR
 } from '../src/';
 
 describe('functionHooks', () => {
-  const hello = async (name: string) => {
+  const hello = async (name: string, _params: any = {}) => {
     return `Hello ${name}`;
   };
 
@@ -201,7 +202,7 @@ describe('functionHooks', () => {
     });
 
     const customContext = new HookContext({ message });
-    const resultContext: HookContext = await fn('Dave', customContext);
+    const resultContext: HookContext = await fn('Dave', {}, customContext);
 
     assert.equal(resultContext, customContext);
     assert.deepEqual(resultContext, new HookContext({
@@ -209,5 +210,32 @@ describe('functionHooks', () => {
       name: 'Changed',
       result: 'Hello Changed'
     }));
+  });
+
+  it('can take and return an existing HookContext - with error', async () => {
+    const message = 'Custom message';
+    const error = new Error('No!');
+    const fn = hooks(hello, {
+      middleware: [
+        () => {
+          throw error;
+        }
+      ],
+      context: withParams('name')
+    });
+
+    const customContext = new HookContext({ message });
+
+    try {
+      await fn('Dave', {}, customContext);
+      assert.fail('Should never get here');
+    } catch (resultContext) {
+      assert.equal(resultContext, customContext);
+      assert.deepEqual(resultContext, new HookContext({
+        message: 'Custom message',
+        name: 'Dave',
+        [HOOK_ERROR]: error
+      }));
+    }
   });
 });
