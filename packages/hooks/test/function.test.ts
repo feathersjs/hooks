@@ -6,7 +6,7 @@ import {
 } from '../src/';
 
 describe('functionHooks', () => {
-  const hello = async (name: string, _params: any = {}) => {
+  const hello = async (name: string) => {
     return `Hello ${name}`;
   };
 
@@ -202,7 +202,7 @@ describe('functionHooks', () => {
     });
 
     const customContext = new HookContext({ message });
-    const resultContext: HookContext = await fn('Dave', {}, customContext);
+    const resultContext: HookContext = await fn('Dave', customContext);
 
     assert.equal(resultContext, customContext);
     assert.deepEqual(resultContext, new HookContext({
@@ -227,7 +227,7 @@ describe('functionHooks', () => {
     const customContext = new HookContext({ message });
 
     try {
-      await fn('Dave', {}, customContext);
+      await fn('Dave', customContext);
       assert.fail('Should never get here');
     } catch (resultContext) {
       assert.equal(resultContext, customContext);
