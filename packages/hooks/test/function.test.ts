@@ -2,7 +2,7 @@ import { strict as assert } from 'assert';
 import {
   hooks, HookContext, functionHooks,
   NextFunction, getMiddleware, registerMiddleware,
-  withParams, withProps, withDefaults
+  withParams, withProps
 } from '../src/';
 
 describe('functionHooks', () => {
@@ -181,7 +181,7 @@ describe('functionHooks', () => {
           await next();
         }
       ],
-      context: [withParams('name', 'params'), withDefaults({ params: {} })]
+      context: withParams('name', ['params', {}])
     });
 
     assert.equal(await fn('Dave'), 'Hello Changed');

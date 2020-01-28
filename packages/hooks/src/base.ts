@@ -113,17 +113,25 @@ export function collectContextUpdaters<T = any> (self: any, fn: any, _args: any[
  *
  * @param params The list of parameter names
  */
-export function withParams<T = any> (...params: string[]) {
+export function withParams<T = any> (...params: Array<string | [string, any]>) {
   return (self: any, _fn: any, args: any[], context: HookContext<T>) => {
-    params.forEach((name, index) => {
-      context[name] = args[index];
+    params.forEach((param: string | [string, any], index: number) => {
+      if (typeof param === 'string') {
+        context[param] = args[index];
+        return;
+      }
+      const [name, defaultValue] = param;
+      context[name] = args[index] === undefined ? defaultValue : args[index];
     });
 
     if (!context.arguments) {
       if (params.length > 0) {
         Object.defineProperty(context, 'arguments', {
           get (this: HookContext<T>) {
-            const result = params.map(name => this[name]);
+            const result = params.map(param => {
+              const name = typeof param === 'string' ? param : param[0];
+              return this[name];
+            });
 
             return Object.freeze(result);
           }
@@ -135,25 +143,6 @@ export function withParams<T = any> (...params: string[]) {
 
     if (self) {
       context.self = self;
-    }
-
-    return context;
-  };
-}
-
-/**
- * Returns a ContextUpdater function that adds default values on the hook context
- *
- * @param defaults Default values
- */
-export function withDefaults<T = any> (defaults: any) {
-  return (_self: any, _fn: any, _args: any[], context: HookContext<T>) => {
-    const keys = Object.keys(defaults);
-
-    for (const key of keys) {
-      if (context[key] === undefined) {
-        context[key] = defaults[key];
-      }
     }
 
     return context;
