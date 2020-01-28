@@ -247,4 +247,27 @@ describe('functionHooks', () => {
       result: 'Hello Changed'
     }));
   });
+
+  it('calls middleware one time', async () => {
+    let called = 0;
+
+    const sayHi = hooks((name: any) => `Hi ${name}`, [
+      async (_context, next) => {
+        called++;
+        await next();
+      }
+    ]);
+
+    const exclamation = hooks(sayHi, [
+      async (context, next) => {
+        await next();
+        context.result += '!';
+      }
+    ]);
+
+    const result = await exclamation('Bertho');
+
+    assert.equal(result, 'Hi Bertho!');
+    assert.equal(called, 1);
+  });
 });

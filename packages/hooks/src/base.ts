@@ -3,8 +3,8 @@ import { Middleware } from './compose';
 export const HOOKS: string = Symbol('@feathersjs/hooks') as any;
 export const CONTEXT: string = Symbol('@feathersjs/hooks/context') as any;
 
-function walkOriginal (fn: any, method: Function, res: any[] = []): any {
-  return fn.original
+function walkOriginal (fn: any, method: any, res: any[] = []): any {
+  return typeof fn.original === 'function'
       ? walkOriginal(fn.original, method, [...res, ...method(fn)])
       : [...res, ...method(fn)];
 }
