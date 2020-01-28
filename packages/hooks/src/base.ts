@@ -3,6 +3,12 @@ import { Middleware } from './compose';
 export const HOOKS: string = Symbol('@feathersjs/hooks') as any;
 export const CONTEXT: string = Symbol('@feathersjs/hooks/context') as any;
 
+function walkOriginal (fn: any, method: Function, res: any[] = []): any {
+  return fn.original
+      ? walkOriginal(fn.original, method, [...res, ...method(fn)])
+      : [...res, ...method(fn)];
+}
+
 /**
  * @param target The target object or function
  * @param middleware
@@ -76,7 +82,7 @@ export type HookSettings<T = any> = Array<Middleware<T>>|Partial<Omit<FunctionHo
 export function defaultCollectMiddleware<T = any> (self: any, fn: any, _args: any[]) {
   return [
     ...getMiddleware<T>(self),
-    ...getMiddleware(fn)
+    ...walkOriginal(fn, getMiddleware)
   ];
 }
 
@@ -96,7 +102,7 @@ export function normalizeOptions<T = any> (opts: any): FunctionHookOptions<T> {
 export function collectContextUpdaters<T = any> (self: any, fn: any, _args: any[]) {
   return [
     ...getContextUpdater<T>(self),
-    ...getContextUpdater(fn)
+    ...walkOriginal(fn, getContextUpdater)
   ];
 }
 
@@ -113,16 +119,18 @@ export function withParams<T = any> (...params: string[]) {
       context[name] = args[index];
     });
 
-    if (params.length > 0) {
-      Object.defineProperty(context, 'arguments', {
-        get (this: HookContext<T>) {
-          const result = params.map(name => this[name]);
+    if (!context.arguments) {
+      if (params.length > 0) {
+        Object.defineProperty(context, 'arguments', {
+          get (this: HookContext<T>) {
+            const result = params.map(name => this[name]);
 
-          return Object.freeze(result);
-        }
-      });
-    } else {
-      context.arguments = args;
+            return Object.freeze(result);
+          }
+        });
+      } else {
+        context.arguments = args;
+      }
     }
 
     if (self) {

@@ -202,7 +202,8 @@ describe('objectHooks', () => {
         middleware: [
           async (ctx, next) => {
             assert.equal(ctx.name, 'Dave');
-            assert.equal(ctx.gna, undefined);
+            assert.equal(ctx.gna, 42);
+            assert.equal(ctx.app, 'ok');
 
             ctx.name = 'Changed';
 
@@ -221,11 +222,12 @@ describe('objectHooks', () => {
           async (ctx, next) => {
             assert.equal(ctx.name, 'Dave');
             assert.equal(ctx.gna, 42);
+            assert.equal(ctx.app, 'ok');
 
             await next();
           }
         ],
-        context: [withParams('name'), withProps({ gna: 42 })]
+        context: withProps({ gna: 42 })
       }
     });
 
@@ -236,12 +238,13 @@ describe('objectHooks', () => {
         middleware: [
           async (ctx, next) => {
             assert.equal(ctx.name, 'Dave');
+            assert.equal(ctx.gna, 42);
             assert.equal(ctx.app, 'ok');
 
             await next();
           }
         ],
-        context: [withParams('name'), withProps({ app: 'ok' })]
+        context: withProps({ app: 'ok' })
       }
     });
 

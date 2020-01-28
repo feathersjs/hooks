@@ -8,6 +8,10 @@ import {
   HookSettings
 } from './base';
 
+function getOriginal (fn: any) : Function {
+  return fn.original ? getOriginal(fn.original) : fn;
+}
+
 /**
  * Returns a new function that is wrapped in the given hooks.
  * Allows to pass a context updater function, usually used
@@ -25,7 +29,7 @@ export const functionHooks = <F, T = any>(original: F, opts: HookSettings<T>) =>
 
   const { context: updateContext, collect, middleware } = normalizeOptions(opts);
 
-  const wrapper = function (this: any, ...args: any[]) {
+  const wrapper : any = function (this: any, ...args: any[]) {
     // If we got passed an existing HookContext instance, we want to return it as well
     const returnContext = args[args.length - 1] instanceof HookContext;
     // Initialize the context. Either the default context or the one that was passed
@@ -47,7 +51,7 @@ export const functionHooks = <F, T = any>(original: F, opts: HookSettings<T>) =>
       // Runs the actual original method if `ctx.result` is not already set
       (ctx, next) => {
         if (ctx.result === undefined) {
-          return Promise.resolve(original.apply(this, ctx.arguments)).then(result => {
+          return Promise.resolve(getOriginal(original).apply(this, ctx.arguments)).then(result => {
             ctx.result = result;
 
             return next();
