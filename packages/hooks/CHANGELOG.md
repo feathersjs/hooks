@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.3.1](https://github.com/feathersjs/hooks/compare/v0.3.0...v0.3.1) (2020-01-29)
+
+
+### Bug Fixes
+
+* Fix dependency entries ([4a15e74](https://github.com/feathersjs/hooks/commit/4a15e74f83247833edf7de8ea26b908115a5ab7a))
+
+
+
+
+
 # [0.3.0](https://github.com/feathersjs/hooks/compare/v0.2.0...v0.3.0) (2020-01-29)
 
 

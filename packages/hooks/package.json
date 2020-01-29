@@ -1,6 +1,6 @@
 {
   "name": "@feathersjs/hooks",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Async middleware for JavaScript and TypeScript",
   "homepage": "https://feathersjs.com",
   "keywords": [
@@ -49,9 +49,9 @@
     "@types/node": "^13.1.2",
     "mocha": "^6.2.2",
     "shx": "^0.3.2",
+    "ts-loader": "^6.2.1",
     "ts-node": "^8.5.4",
     "typescript": "^3.7.4",
-    "ts-loader": "^6.2.1",
     "webpack": "^4.41.5",
     "webpack-cli": "^3.3.10"
   }
