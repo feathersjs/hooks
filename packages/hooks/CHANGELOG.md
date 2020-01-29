@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.3.0](https://github.com/feathersjs/hooks/compare/v0.2.0...v0.3.0) (2020-01-29)
+
+
+### Features
+
+* Allow multiple context initializers ([#12](https://github.com/feathersjs/hooks/issues/12)) ([a556272](https://github.com/feathersjs/hooks/commit/a556272f535c7d2a25bcbc12d8473cdaefaf8c56))
+
+
+
+
+
 # [0.2.0](https://github.com/feathersjs/hooks/compare/v0.1.0...v0.2.0) (2020-01-14)
 
 
