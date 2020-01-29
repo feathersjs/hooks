@@ -21,8 +21,6 @@
     "**/package-lock.json",
     "**/yarn.lock",
     "**/test/**",
-    "lerna.json",
-    "readme.md",
-    "package.json"
+    "lerna.json"
   ]
 }
