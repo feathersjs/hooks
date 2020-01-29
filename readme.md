@@ -345,6 +345,32 @@ const wrappedSayHello = hooks(sayHello, {
 
 > __Note:__ When using named parameters, `context.arguments` is read only.
 
+`withParams` also allows to define default values with an array (`[name, defaultValue]`) for each parameter, like this:
+
+```js
+const { hooks, withParams } = require('@feathersjs/hooks');
+
+const sayHello = async (firstName, lastName, params = {}) => {
+  return `Hello ${firstName} ${lastName}!`;
+};
+
+const wrappedSayHello = hooks(sayHello, {
+  context: withParams('firstName', 'lastName', ['params', {}]),
+  middleware: [
+    async (context, next) => {
+      // `context.params` is an empty object here
+      await next();
+    }
+  ]
+});
+
+(async () => {
+  console.log(await wrappedSayHello('David', 'L')); // Hello David X
+})();
+```
+
+> __Note:__ Even if your original function contains a default value, it is important to specify it with `withParams` because the middleware runs before and the value will be `undefined` without default value in `withParams`.
+
 ### Modifying the result
 
 In a hook function, `context.result` can be
