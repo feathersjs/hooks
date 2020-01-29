@@ -1,5 +1,5 @@
 import { strict as assert } from 'assert';
-import { hooks, HookContext, NextFunction, withParams } from '../src';
+import {hooks, HookContext, NextFunction, withParams, withProps} from '../src';
 
 describe('objectHooks', () => {
   let obj: any;
@@ -194,5 +194,60 @@ describe('objectHooks', () => {
     });
 
     assert.equal(await obj.sayHi('Dave'), 'Hi Dave?!');
+  });
+
+  it('works with multiple context updaters', async () => {
+    hooks(DummyClass, {
+      sayHi: {
+        middleware: [
+          async (ctx, next) => {
+            assert.equal(ctx.name, 'Dave');
+            assert.equal(ctx.gna, 42);
+            assert.equal(ctx.app, 'ok');
+
+            ctx.name = 'Changed';
+
+            await next();
+          }
+        ],
+        context: withParams('name')
+      }
+    });
+
+    class OtherDummy extends DummyClass {}
+
+    hooks(OtherDummy, {
+      sayHi: {
+        middleware: [
+          async (ctx, next) => {
+            assert.equal(ctx.name, 'Dave');
+            assert.equal(ctx.gna, 42);
+            assert.equal(ctx.app, 'ok');
+
+            await next();
+          }
+        ],
+        context: withProps({ gna: 42 })
+      }
+    });
+
+    const instance = new OtherDummy();
+
+    hooks(instance, {
+      sayHi: {
+        middleware: [
+          async (ctx, next) => {
+            assert.equal(ctx.name, 'Dave');
+            assert.equal(ctx.gna, 42);
+            assert.equal(ctx.app, 'ok');
+
+            await next();
+          }
+        ],
+        context: withProps({ app: 'ok' })
+      }
+    });
+
+    assert.equal(await instance.sayHi('Dave'), 'Hi Changed');
   });
 });

@@ -1,11 +1,12 @@
 import { strict as assert } from 'assert';
 import {
   hooks, HookContext, functionHooks,
-  NextFunction, getMiddleware, withParams, registerMiddleware
+  NextFunction, getMiddleware, registerMiddleware,
+  withParams, withProps
 } from '../src/';
 
 describe('functionHooks', () => {
-  const hello = async (name: string) => {
+  const hello = async (name: string, _params: any = {}) => {
     return `Hello ${name}`;
   };
 
@@ -168,6 +169,42 @@ describe('functionHooks', () => {
     assert.equal(await fn('Dave'), 'Hello Changed');
   });
 
+  it('creates context with default params', async () => {
+    const fn = hooks(hello, {
+      middleware: [
+        async (ctx, next) => {
+          assert.equal(ctx.name, 'Dave');
+          assert.deepEqual(ctx.params, {});
+
+          ctx.name = 'Changed';
+
+          await next();
+        }
+      ],
+      context: withParams('name', ['params', {}])
+    });
+
+    assert.equal(await fn('Dave'), 'Hello Changed');
+  });
+
+  it('assigns props to context', async () => {
+    const fn = hooks(hello, {
+      middleware: [
+        async (ctx, next) => {
+          assert.equal(ctx.name, 'Dave');
+          assert.equal(ctx.dev, true);
+
+          ctx.name = 'Changed';
+
+          await next();
+        }
+      ],
+      context: [withParams('name'), withProps({ dev: true })]
+    });
+
+    assert.equal(await fn('Dave'), 'Hello Changed');
+  });
+
   it('with named context ctx.arguments is frozen', async () => {
     const modifyArgs = async (ctx: HookContext, next: NextFunction) => {
       ctx.arguments[0] = 'Test';
@@ -201,7 +238,7 @@ describe('functionHooks', () => {
     });
 
     const customContext = new HookContext({ message });
-    const resultContext: HookContext = await fn('Dave', customContext);
+    const resultContext: HookContext = await fn('Dave', {}, customContext);
 
     assert.equal(resultContext, customContext);
     assert.deepEqual(resultContext, new HookContext({
@@ -209,5 +246,28 @@ describe('functionHooks', () => {
       name: 'Changed',
       result: 'Hello Changed'
     }));
+  });
+
+  it('calls middleware one time', async () => {
+    let called = 0;
+
+    const sayHi = hooks((name: any) => `Hi ${name}`, [
+      async (_context, next) => {
+        called++;
+        await next();
+      }
+    ]);
+
+    const exclamation = hooks(sayHi, [
+      async (context, next) => {
+        await next();
+        context.result += '!';
+      }
+    ]);
+
+    const result = await exclamation('Bertho');
+
+    assert.equal(result, 'Hi Bertho!');
+    assert.equal(called, 1);
   });
 });
