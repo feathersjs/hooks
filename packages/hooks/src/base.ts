@@ -136,9 +136,7 @@ export function withParams<T = any> (...params: Array<string | [string, any]>) {
             Object.defineProperty(result, index, {
               enumerable: true,
               configurable: true,
-              get: (): any => {
-                return this[name];
-              },
+              get: () => this[name],
               set: (value) => {
                 this[name] = value;
                 if (result[index] !== this[name]) {
@@ -150,7 +148,7 @@ export function withParams<T = any> (...params: Array<string | [string, any]>) {
             this[name] = result[index];
           });
 
-          return Object.freeze(result);
+          return Object.seal(result);
         }
       });
     } else if (!context.arguments) {
