@@ -205,9 +205,11 @@ describe('functionHooks', () => {
     assert.equal(await fn('Dave'), 'Hello Changed');
   });
 
-  it('with named context ctx.arguments is frozen', async () => {
+  it('ctx.arguments is configurable with named params', async () => {
     const modifyArgs = async (ctx: HookContext, next: NextFunction) => {
-      ctx.arguments[0] = 'Test';
+      ctx.arguments[0] = 'Changed';
+
+      assert.equal(ctx.name, ctx.arguments[0]);
 
       await next();
     };
@@ -217,9 +219,9 @@ describe('functionHooks', () => {
       context: withParams('name')
     });
 
-    await assert.rejects(() => fn('There'), {
-      message: `Cannot assign to read only property '0' of object '[object Array]'`
-    });
+    const result = await fn('Daffl');
+
+    assert.equal(result, 'Hello Changed');
   });
 
   it('can take and return an existing HookContext', async () => {

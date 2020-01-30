@@ -128,9 +128,26 @@ export function withParams<T = any> (...params: Array<string | [string, any]>) {
       Object.defineProperty(context, 'arguments', {
         enumerable: false,
         get (this: HookContext<T>) {
-          const result = params.map(param => {
+          const result: any = [];
+
+          params.forEach((param, index) => {
             const name = typeof param === 'string' ? param : param[0];
-            return this[name];
+
+            Object.defineProperty(result, index, {
+              enumerable: true,
+              configurable: true,
+              get: (): any => {
+                return this[name];
+              },
+              set: (value) => {
+                this[name] = value;
+                if (result[index] !== this[name]) {
+                  result[index] = value;
+                }
+              }
+            });
+
+            this[name] = result[index];
           });
 
           return Object.freeze(result);
