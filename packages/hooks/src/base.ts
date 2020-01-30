@@ -9,20 +9,32 @@ function walkOriginal (fn: any, method: any, res: any[] = []): any {
       : [...res, ...method(fn)];
 }
 
+export function getMiddleware<T> (target: any): Array<Middleware<T>> {
+  return (target && target[HOOKS]) || [];
+}
+
+export type MiddlewareSetter = (currentMiddleware: Middleware[]) => Middleware[];
+
 /**
  * @param target The target object or function
- * @param middleware
+ * @param middleware or function
  */
-export function registerMiddleware<T> (target: T, middleware: Middleware[]) {
-  const current: Middleware[] = (target as any)[HOOKS] || [];
-
-  (target as any)[HOOKS] = current.concat(middleware);
+export function setMiddleware<T> (target: T, middleware: Middleware[] | MiddlewareSetter) {
+  (target as any)[HOOKS] = typeof middleware === 'function' ? middleware(getMiddleware(target)) : middleware;
 
   return target;
 }
 
-export function getMiddleware<T> (target: any): Array<Middleware<T>> {
-  return (target && target[HOOKS]) || [];
+/**
+ * @param target The target object
+ * @param middleware or a function that takes current middleware as first argument
+ */
+export function registerMiddleware<T> (target: T, middleware: Middleware[]) {
+  return setMiddleware(target, (current: Middleware[]) => current.concat(middleware));
+}
+
+export function getContextUpdater<T> (target: any): Array<ContextUpdater<T>> {
+  return (target && target[CONTEXT]) || [];
 }
 
 /**
@@ -30,15 +42,11 @@ export function getMiddleware<T> (target: any): Array<Middleware<T>> {
  * @param updaters
  */
 export function registerContextUpdater<T> (target: T, updaters: ContextUpdater[]) {
-  const current: ContextUpdater[] = (target as any)[CONTEXT] || [];
+  const current = getContextUpdater(target);
 
   (target as any)[CONTEXT] = current.concat(updaters);
 
   return target;
-}
-
-export function getContextUpdater<T> (target: any): Array<ContextUpdater<T>> {
-  return (target && target[CONTEXT]) || [];
 }
 
 /**
