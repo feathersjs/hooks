@@ -124,21 +124,19 @@ export function withParams<T = any> (...params: Array<string | [string, any]>) {
       context[name] = args[index] === undefined ? defaultValue : args[index];
     });
 
-    if (!context.arguments) {
-      if (params.length > 0) {
-        Object.defineProperty(context, 'arguments', {
-          get (this: HookContext<T>) {
-            const result = params.map(param => {
-              const name = typeof param === 'string' ? param : param[0];
-              return this[name];
-            });
+    if (params.length > 0) {
+      Object.defineProperty(context, 'arguments', {
+        get (this: HookContext<T>) {
+          const result = params.map(param => {
+            const name = typeof param === 'string' ? param : param[0];
+            return this[name];
+          });
 
-            return Object.freeze(result);
-          }
-        });
-      } else {
-        context.arguments = args;
-      }
+          return Object.freeze(result);
+        }
+      });
+    } else {
+      context.arguments = args;
     }
 
     if (self) {
