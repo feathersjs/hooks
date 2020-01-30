@@ -3,12 +3,6 @@ import { Middleware } from './compose';
 export const HOOKS: string = Symbol('@feathersjs/hooks') as any;
 export const CONTEXT: string = Symbol('@feathersjs/hooks/context') as any;
 
-function walkOriginal (fn: any, method: any, res: any[] = []): any {
-  return typeof fn.original === 'function'
-      ? walkOriginal(fn.original, method, [...res, ...method(fn)])
-      : [...res, ...method(fn)];
-}
-
 /**
  * @param target The target object or function
  * @param middleware
@@ -79,10 +73,13 @@ export type HookSettings<T = any> = Array<Middleware<T>>|Partial<Omit<FunctionHo
   context: ContextUpdater<T>|Array<ContextUpdater<T>>;
 }>;
 
-export function defaultCollectMiddleware<T = any> (self: any, fn: any, _args: any[]) {
+export function defaultCollectMiddleware<T = any> (self: any, fn: any, args: any[]): Middleware[] {
   return [
     ...getMiddleware<T>(self),
-    ...walkOriginal(fn, getMiddleware)
+    ...getMiddleware<T>(fn),
+    ...(fn.original && fn.original.collect && typeof fn.original.collect === 'function'
+      ? fn.original.collect(null, fn.original, args)
+      : [])
   ];
 }
 
@@ -99,10 +96,11 @@ export function normalizeOptions<T = any> (opts: any): FunctionHookOptions<T> {
   return { middleware, context: contextUpdaters, collect };
 }
 
-export function collectContextUpdaters<T = any> (self: any, fn: any, _args: any[]) {
+export function collectContextUpdaters<T = any> (self: any, fn: any, args: any[]): ContextUpdater[] {
   return [
     ...getContextUpdater<T>(self),
-    ...walkOriginal(fn, getContextUpdater)
+    ...getContextUpdater<T>(fn),
+    ...(fn.original ? collectContextUpdaters(null, fn.original, args) : [])
   ];
 }
 
