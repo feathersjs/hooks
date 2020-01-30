@@ -135,7 +135,7 @@ export function withParams<T = any> (...params: Array<string | [string, any]>) {
           return Object.freeze(result);
         }
       });
-    } else {
+    } else if (!context.arguments) {
       context.arguments = args;
     }
 
