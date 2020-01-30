@@ -126,6 +126,7 @@ export function withParams<T = any> (...params: Array<string | [string, any]>) {
 
     if (params.length > 0) {
       Object.defineProperty(context, 'arguments', {
+        enumerable: false,
         get (this: HookContext<T>) {
           const result = params.map(param => {
             const name = typeof param === 'string' ? param : param[0];

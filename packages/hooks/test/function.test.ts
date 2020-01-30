@@ -248,6 +248,32 @@ describe('functionHooks', () => {
     }));
   });
 
+  it('takes parameters with multiple withParams', async () => {
+    const message = 'Custom message';
+    const fn = hooks(hello, {
+      middleware: [
+        async (ctx, next) => {
+          assert.equal(ctx.name, 'Dave');
+          assert.equal(ctx.message, message);
+
+          ctx.name = 'Changed';
+          await next();
+        }
+      ],
+      context: [withParams(), withParams('name'), withParams()]
+    });
+
+    const customContext = new HookContext({ message });
+    const resultContext: HookContext = await fn('Dave', {}, customContext);
+
+    assert.equal(resultContext, customContext);
+    assert.deepEqual(resultContext, new HookContext({
+      message: 'Custom message',
+      name: 'Changed',
+      result: 'Hello Changed'
+    }));
+  });
+
   it('calls middleware one time', async () => {
     let called = 0;
 
