@@ -343,8 +343,6 @@ const wrappedSayHello = hooks(sayHello, {
 })();
 ```
 
-> __Note:__ When using named parameters, `context.arguments` is read only.
-
 ### Modifying the result
 
 In a hook function, `context.result` can be
