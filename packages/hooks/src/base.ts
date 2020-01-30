@@ -126,7 +126,7 @@ export function withParams<T = any> (...params: Array<string | [string, any]>) {
 
     if (params.length > 0) {
       Object.defineProperty(context, 'arguments', {
-        enumerable: false,
+        enumerable: true,
         get (this: HookContext<T>) {
           const result: any = [];
 
@@ -148,12 +148,14 @@ export function withParams<T = any> (...params: Array<string | [string, any]>) {
             this[name] = result[index];
           });
 
-          return Object.seal(result);
+          return result;
         }
       });
     } else if (!context.arguments) {
       context.arguments = args;
     }
+
+    Object.seal(context.arguments);
 
     if (self) {
       context.self = self;

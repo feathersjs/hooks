@@ -208,6 +208,7 @@ describe('functionHooks', () => {
   it('ctx.arguments is configurable with named params', async () => {
     const modifyArgs = async (ctx: HookContext, next: NextFunction) => {
       ctx.arguments[0] = 'Changed';
+      ctx.arguments.push('no');
 
       assert.equal(ctx.name, ctx.arguments[0]);
 
@@ -219,9 +220,15 @@ describe('functionHooks', () => {
       context: withParams('name')
     });
 
-    const result = await fn('Daffl');
+    const customContext = new HookContext({});
+    const resultContext = await fn('Daffl', {}, customContext);
 
-    assert.equal(result, 'Hello Changed');
+    assert.equal(resultContext, customContext);
+    assert.deepEqual(resultContext, new HookContext({
+      arguments: ['Changed'],
+      name: 'Changed',
+      result: 'Hello Changed'
+    }));
   });
 
   it('can take and return an existing HookContext', async () => {
@@ -244,6 +251,7 @@ describe('functionHooks', () => {
 
     assert.equal(resultContext, customContext);
     assert.deepEqual(resultContext, new HookContext({
+      arguments: ['Changed'],
       message: 'Custom message',
       name: 'Changed',
       result: 'Hello Changed'
@@ -270,6 +278,7 @@ describe('functionHooks', () => {
 
     assert.equal(resultContext, customContext);
     assert.deepEqual(resultContext, new HookContext({
+      arguments: ['Changed'],
       message: 'Custom message',
       name: 'Changed',
       result: 'Hello Changed'

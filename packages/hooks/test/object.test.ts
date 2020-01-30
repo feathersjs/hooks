@@ -33,9 +33,9 @@ describe('objectHooks', () => {
     const hookedObj = hooks(obj, {
       sayHi: [async (ctx: HookContext, next: NextFunction) => {
         assert.deepEqual(ctx, new HookContext({
+          arguments: [ 'David' ],
           self: obj,
-          method: 'sayHi',
-          arguments: [ 'David' ]
+          method: 'sayHi'
         }));
 
         await next();
@@ -59,6 +59,7 @@ describe('objectHooks', () => {
       sayHi: {
         middleware: [async (ctx: HookContext, next: NextFunction) => {
           assert.deepStrictEqual(ctx, new HookContext({
+            arguments: ['David'],
             method: 'sayHi',
             name: 'David',
             self: obj
@@ -122,6 +123,7 @@ describe('objectHooks', () => {
       sayHi: {
         middleware: [async (ctx: HookContext, next: NextFunction) => {
           assert.deepStrictEqual(ctx, new HookContext({
+            arguments: ['David'],
             self: instance,
             method: 'sayHi',
             name: 'David'
@@ -150,8 +152,8 @@ describe('objectHooks', () => {
     hooks(DummyClass, {
       sayHi: [async (ctx: HookContext, next: NextFunction) => {
         assert.deepStrictEqual(ctx, new HookContext({
-          method: 'sayHi',
           arguments: [ 'David' ],
+          method: 'sayHi',
           self: instance
         }));
 
