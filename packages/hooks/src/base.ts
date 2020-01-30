@@ -76,10 +76,7 @@ export type HookSettings<T = any> = Array<Middleware<T>>|Partial<Omit<FunctionHo
 export function defaultCollectMiddleware<T = any> (self: any, fn: any, args: any[]): Middleware[] {
   return [
     ...getMiddleware<T>(self),
-    ...getMiddleware<T>(fn),
-    ...(fn.original && fn.original.collect && typeof fn.original.collect === 'function'
-      ? fn.original.collect(null, fn.original, args)
-      : [])
+    ...(fn && typeof fn.collect === 'function' ? fn.collect(fn, fn.original, args) : [])
   ];
 }
 
@@ -99,8 +96,7 @@ export function normalizeOptions<T = any> (opts: any): FunctionHookOptions<T> {
 export function collectContextUpdaters<T = any> (self: any, fn: any, args: any[]): ContextUpdater[] {
   return [
     ...getContextUpdater<T>(self),
-    ...getContextUpdater<T>(fn),
-    ...(fn.original ? collectContextUpdaters(null, fn.original, args) : [])
+    ...(fn.original ? collectContextUpdaters(fn, fn.original, args) : [])
   ];
 }
 
