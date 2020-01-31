@@ -270,4 +270,22 @@ describe('functionHooks', () => {
     assert.equal(result, 'Hi Bertho!');
     assert.equal(called, 1);
   });
+
+  it('conserves method properties', async () => {
+    const TEST = Symbol('test');
+    const hello = (name: any) => `Hi ${name}`;
+    (hello as any)[TEST] = true;
+
+    const sayHi = hooks(hello, [
+      async (context, next) => {
+        await next();
+        context.result += '!';
+      }
+    ]);
+
+    const result = await sayHi('Bertho');
+
+    assert.equal(result, 'Hi Bertho!');
+    assert.equal((sayHi as any)[TEST], (hello as any)[TEST]);
+  });
 });
