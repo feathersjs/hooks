@@ -258,7 +258,7 @@ hook1 after
 Instead an array of middleware, an object with the following options can be passed:
 
 - `middleware` - The array of middleware functions
-- `context` (*optional*) - A function `(self: any, args: any[], context: HookContext) => HookContext` that updates the existing `context` with information about the function call like the `this` reference (`self`) and the function call arguments (`args`). Usually used for [named parameters](#using-named-parameters).
+- `context` (*optional*) - A function `(self: any, fn: any, args: any[], context: HookContext) => HookContext` that updates the existing `context` with information about the function call like the `this` reference (`self`), the wrapped function (`fn`) and the function call arguments (`args`). Usually used for [named parameters](#using-named-parameters).
 - `collect` (*optional*) - A function `(self: any, fn: any, args: any[]) => Middleware[]` that returns all middleware functions for a function call. Usually does not need to be customized.
 
 ```js
@@ -429,7 +429,7 @@ const wrappedSayHello = hooks(sayHello, {
       await next();
     }
   ],
-  context (self, args, context) {
+  context (self, fn, args, context) {
     context.self = self;
     context.arguments = args;
     context.someProperty = 'Set from updateContext';
