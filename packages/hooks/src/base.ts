@@ -124,22 +124,38 @@ export function withParams<T = any> (...params: Array<string | [string, any]>) {
       context[name] = args[index] === undefined ? defaultValue : args[index];
     });
 
-    if (!context.arguments) {
-      if (params.length > 0) {
-        Object.defineProperty(context, 'arguments', {
-          get (this: HookContext<T>) {
-            const result = params.map(param => {
-              const name = typeof param === 'string' ? param : param[0];
-              return this[name];
+    if (params.length > 0) {
+      Object.defineProperty(context, 'arguments', {
+        enumerable: true,
+        get (this: HookContext<T>) {
+          const result: any = [];
+
+          params.forEach((param, index) => {
+            const name = typeof param === 'string' ? param : param[0];
+
+            Object.defineProperty(result, index, {
+              enumerable: true,
+              configurable: true,
+              get: () => this[name],
+              set: (value) => {
+                this[name] = value;
+                if (result[index] !== this[name]) {
+                  result[index] = value;
+                }
+              }
             });
 
-            return Object.freeze(result);
-          }
-        });
-      } else {
-        context.arguments = args;
-      }
+            this[name] = result[index];
+          });
+
+          return result;
+        }
+      });
+    } else if (!context.arguments) {
+      context.arguments = args;
     }
+
+    Object.seal(context.arguments);
 
     if (self) {
       context.self = self;
