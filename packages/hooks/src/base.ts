@@ -87,10 +87,10 @@ export type HookSettings<T = any> = Array<Middleware<T>>|Partial<Omit<FunctionHo
   context: ContextUpdater<T>|Array<ContextUpdater<T>>;
 }>;
 
-export function defaultCollectMiddleware<T = any> (self: any, fn: any, _args: any[]) {
+export function defaultCollectMiddleware<T = any> (self: any, fn: any, args: any[]): Middleware[] {
   return [
     ...getMiddleware<T>(self),
-    ...walkOriginal(fn, getMiddleware)
+    ...(fn && typeof fn.collect === 'function' ? fn.collect(fn, fn.original, args) : getMiddleware(fn))
   ];
 }
 
@@ -107,10 +107,10 @@ export function normalizeOptions<T = any> (opts: any): FunctionHookOptions<T> {
   return { middleware, context: contextUpdaters, collect };
 }
 
-export function collectContextUpdaters<T = any> (self: any, fn: any, _args: any[]) {
+export function collectContextUpdaters<T = any> (self: any, fn: any, args: any[]): ContextUpdater[] {
   return [
     ...getContextUpdater<T>(self),
-    ...walkOriginal(fn, getContextUpdater)
+    ...(fn.original ? collectContextUpdaters(fn, fn.original, args) : getContextUpdater(fn))
   ];
 }
 
@@ -132,22 +132,38 @@ export function withParams<T = any> (...params: Array<string | [string, any]>) {
       context[name] = args[index] === undefined ? defaultValue : args[index];
     });
 
-    if (!context.arguments) {
-      if (params.length > 0) {
-        Object.defineProperty(context, 'arguments', {
-          get (this: HookContext<T>) {
-            const result = params.map(param => {
-              const name = typeof param === 'string' ? param : param[0];
-              return this[name];
+    if (params.length > 0) {
+      Object.defineProperty(context, 'arguments', {
+        enumerable: true,
+        get (this: HookContext<T>) {
+          const result: any = [];
+
+          params.forEach((param, index) => {
+            const name = typeof param === 'string' ? param : param[0];
+
+            Object.defineProperty(result, index, {
+              enumerable: true,
+              configurable: true,
+              get: () => this[name],
+              set: (value) => {
+                this[name] = value;
+                if (result[index] !== this[name]) {
+                  result[index] = value;
+                }
+              }
             });
 
-            return Object.freeze(result);
-          }
-        });
-      } else {
-        context.arguments = args;
-      }
+            this[name] = result[index];
+          });
+
+          return result;
+        }
+      });
+    } else if (!context.arguments) {
+      context.arguments = args;
     }
+
+    Object.seal(context.arguments);
 
     if (self) {
       context.self = self;

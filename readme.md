@@ -58,7 +58,7 @@ yarn add @feathersjs/hooks
 
 ## Deno
 
-```
+```js
 import { hooks } from 'https://unpkg.com/@feathersjs/hooks@latest/deno/index.ts';
 ```
 
@@ -593,7 +593,7 @@ hooks(HelloSayer.prototype, {
 With decorators and inheritance
 
 ```js
-import { hooks, params, HookContext, NextFunction } from '@feathersjs/hooks';
+import { hooks, withParams, HookContext, NextFunction } from '@feathersjs/hooks';
 
 @hooks([
   async (context: HookContext, next: NextFunction) => {
