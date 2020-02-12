@@ -68,5 +68,5 @@ export const functionHooks = <F, T = any>(original: F, opts: HookSettings<T>) =>
   registerContextUpdater(wrapper, updateContext);
   registerMiddleware(wrapper, middleware);
 
-  return Object.assign(wrapper, { original });
+  return Object.assign(wrapper, { original, collect });
 };
