@@ -58,7 +58,7 @@ yarn add @feathersjs/hooks
 
 ## Deno
 
-```
+```js
 import { hooks } from 'https://unpkg.com/@feathersjs/hooks@latest/deno/index.ts';
 ```
 
