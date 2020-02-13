@@ -68,7 +68,7 @@ export const functionHooks = <F, T = any>(original: F, opts: HookSettings<T>) =>
   registerContextUpdater(wrapper, updateContext);
   registerMiddleware(wrapper, middleware);
 
-  const originalProps = (Object.getOwnPropertyNames(original) as any)
+  const originalProps = (Object.keys(original) as any)
     .concat(Object.getOwnPropertySymbols(original));
 
   for (const prop of originalProps) {
