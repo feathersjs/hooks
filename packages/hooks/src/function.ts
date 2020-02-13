@@ -5,7 +5,8 @@ import {
   registerContextUpdater,
   normalizeOptions,
   collectContextUpdaters,
-  HookSettings
+  HookSettings,
+  withParams
 } from './base';
 
 function getOriginal (fn: any): any {
@@ -68,5 +69,9 @@ export const functionHooks = <F, T = any>(original: F, opts: HookSettings<T>) =>
   registerContextUpdater(wrapper, updateContext);
   registerMiddleware(wrapper, middleware);
 
-  return Object.assign(wrapper, { original, collect });
+  function params (...args: Array<string | [string, any]>): typeof wrapper {
+    return registerContextUpdater(wrapper, [withParams(...args)]);
+  }
+
+  return Object.assign(wrapper, { original, collect, params });
 };

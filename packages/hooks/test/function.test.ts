@@ -307,4 +307,37 @@ describe('functionHooks', () => {
     assert.equal(result, 'Hi Bertho!');
     assert.equal(called, 1);
   });
+
+  it('is chainable with .params on function', async () => {
+    const hook = async function (this: any, context: HookContext, next: NextFunction) {
+      await next();
+      context.result += '!';
+    };
+    const exclamation = hooks(hello, [hook]).params(['name', 'Dave']);
+
+    const result = await exclamation();
+
+    assert.equal(result, 'Hello Dave!');
+  });
+
+  it('is chainable with .params on object', async () => {
+    const hook = async function (this: any, context: HookContext, next: NextFunction) {
+      await next();
+      context.result += '!';
+    };
+    const obj = {
+      sayHi (name: any) {
+        return `Hi ${name}`;
+      }
+    };
+
+    hooks(obj, {
+      sayHi: hooks([hook]).params('name')
+    });
+
+    // TODO (help) TypeScript fails with `obj.sayHi()` and not fails without await
+    const result = await obj.sayHi('Dave');
+
+    assert.equal(result, 'Hi Dave!');
+  });
 });
