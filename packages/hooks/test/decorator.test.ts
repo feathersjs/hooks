@@ -27,6 +27,7 @@ describe('hookDecorator', () => {
           assert.deepStrictEqual(ctx, new HookContext({
             method: 'sayHi',
             self: instance,
+            arguments: ['David NameFromTopLevel NameFromDummyClass'],
             name: expectedName
           }));
 

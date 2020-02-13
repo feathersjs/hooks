@@ -58,7 +58,7 @@ yarn add @feathersjs/hooks
 
 ## Deno
 
-```
+```js
 import { hooks } from 'https://unpkg.com/@feathersjs/hooks@latest/deno/index.ts';
 ```
 
@@ -258,7 +258,7 @@ hook1 after
 Instead an array of middleware, an object with the following options can be passed:
 
 - `middleware` - The array of middleware functions
-- `context` (*optional*) - A function `(self: any, args: any[], context: HookContext) => HookContext` that updates the existing `context` with information about the function call like the `this` reference (`self`) and the function call arguments (`args`). Usually used for [named parameters](#using-named-parameters).
+- `context` (*optional*) - A function `(self: any, fn: any, args: any[], context: HookContext) => HookContext` that updates the existing `context` with information about the function call like the `this` reference (`self`), the wrapped function (`fn`) and the function call arguments (`args`). Usually used for [named parameters](#using-named-parameters).
 - `collect` (*optional*) - A function `(self: any, fn: any, args: any[]) => Middleware[]` that returns all middleware functions for a function call. Usually does not need to be customized.
 
 ```js
@@ -345,6 +345,32 @@ const wrappedSayHello = hooks(sayHello, {
 
 > __Note:__ When using named parameters, `context.arguments` is read only.
 
+`withParams` also allows to define default values with an array (`[name, defaultValue]`) for each parameter, like this:
+
+```js
+const { hooks, withParams } = require('@feathersjs/hooks');
+
+const sayHello = async (firstName, lastName, params = {}) => {
+  return `Hello ${firstName} ${lastName}!`;
+};
+
+const wrappedSayHello = hooks(sayHello, {
+  context: withParams('firstName', 'lastName', ['params', {}]),
+  middleware: [
+    async (context, next) => {
+      // `context.params` is an empty object here
+      await next();
+    }
+  ]
+});
+
+(async () => {
+  console.log(await wrappedSayHello('David', 'L')); // Hello David X
+})();
+```
+
+> __Note:__ Even if your original function contains a default value, it is important to specify it with `withParams` because the middleware runs before and the value will be `undefined` without default value in `withParams`.
+
 ### Modifying the result
 
 In a hook function, `context.result` can be
@@ -429,7 +455,7 @@ const wrappedSayHello = hooks(sayHello, {
       await next();
     }
   ],
-  context (self, args, context) {
+  context (self, fn, args, context) {
     context.self = self;
     context.arguments = args;
     context.someProperty = 'Set from updateContext';
@@ -567,7 +593,7 @@ hooks(HelloSayer.prototype, {
 With decorators and inheritance
 
 ```js
-import { hooks, params, HookContext, NextFunction } from '@feathersjs/hooks';
+import { hooks, withParams, HookContext, NextFunction } from '@feathersjs/hooks';
 
 @hooks([
   async (context: HookContext, next: NextFunction) => {

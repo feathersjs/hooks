@@ -1,8 +1,8 @@
 import { strict as assert } from 'assert';
 import {
   hooks, HookContext, functionHooks,
-  NextFunction, getMiddleware, registerMiddleware,
-  withParams, withProps
+  NextFunction, getMiddleware, setMiddleware, registerMiddleware,
+  withParams, withProps, Middleware
 } from '../src/';
 
 describe('functionHooks', () => {
@@ -24,6 +24,24 @@ describe('functionHooks', () => {
 
     assert.notDeepEqual(fn, hello);
     assert.deepEqual(getMiddleware(fn), []);
+  });
+
+  it('can manually set an array of middleware', () => {
+    const fn = hooks(hello, []) as any;
+    const mw = [(_ctx: any, next: any) => next()];
+
+    setMiddleware(fn, mw);
+
+    assert.deepEqual(getMiddleware(fn), mw);
+  });
+
+  it('can manually set middleware with a function', () => {
+    const noop = (_ctx: any, next: any) => next();
+    const fn = hooks(hello, [noop]) as any;
+
+    setMiddleware(fn, (current: Middleware[]) => [...current, noop]);
+
+    assert.deepEqual(getMiddleware(fn), [noop, noop]);
   });
 
   it('can override arguments, has context', async () => {
@@ -205,9 +223,12 @@ describe('functionHooks', () => {
     assert.equal(await fn('Dave'), 'Hello Changed');
   });
 
-  it('with named context ctx.arguments is frozen', async () => {
+  it('ctx.arguments is configurable with named params', async () => {
     const modifyArgs = async (ctx: HookContext, next: NextFunction) => {
-      ctx.arguments[0] = 'Test';
+      ctx.arguments[0] = 'Changed';
+      ctx.arguments.push('no');
+
+      assert.equal(ctx.name, ctx.arguments[0]);
 
       await next();
     };
@@ -217,9 +238,15 @@ describe('functionHooks', () => {
       context: withParams('name')
     });
 
-    await assert.rejects(() => fn('There'), {
-      message: `Cannot assign to read only property '0' of object '[object Array]'`
-    });
+    const customContext = new HookContext({});
+    const resultContext = await fn('Daffl', {}, customContext);
+
+    assert.equal(resultContext, customContext);
+    assert.deepEqual(resultContext, new HookContext({
+      arguments: ['Changed'],
+      name: 'Changed',
+      result: 'Hello Changed'
+    }));
   });
 
   it('can take and return an existing HookContext', async () => {
@@ -242,6 +269,34 @@ describe('functionHooks', () => {
 
     assert.equal(resultContext, customContext);
     assert.deepEqual(resultContext, new HookContext({
+      arguments: ['Changed'],
+      message: 'Custom message',
+      name: 'Changed',
+      result: 'Hello Changed'
+    }));
+  });
+
+  it('takes parameters with multiple withParams', async () => {
+    const message = 'Custom message';
+    const fn = hooks(hello, {
+      middleware: [
+        async (ctx, next) => {
+          assert.equal(ctx.name, 'Dave');
+          assert.equal(ctx.message, message);
+
+          ctx.name = 'Changed';
+          await next();
+        }
+      ],
+      context: [withParams(), withParams('name'), withParams()]
+    });
+
+    const customContext = new HookContext({ message });
+    const resultContext: HookContext = await fn('Dave', {}, customContext);
+
+    assert.equal(resultContext, customContext);
+    assert.deepEqual(resultContext, new HookContext({
+      arguments: ['Changed'],
       message: 'Custom message',
       name: 'Changed',
       result: 'Hello Changed'

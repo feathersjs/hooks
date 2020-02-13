@@ -3,26 +3,32 @@ import { Middleware } from './compose';
 export const HOOKS: string = Symbol('@feathersjs/hooks') as any;
 export const CONTEXT: string = Symbol('@feathersjs/hooks/context') as any;
 
-function walkOriginal (fn: any, method: any, res: any[] = []): any {
-  return typeof fn.original === 'function'
-      ? walkOriginal(fn.original, method, [...res, ...method(fn)])
-      : [...res, ...method(fn)];
+export function getMiddleware<T> (target: any): Array<Middleware<T>> {
+  return (target && target[HOOKS]) || [];
 }
+
+export type MiddlewareSetter = (currentMiddleware: Middleware[]) => Middleware[];
 
 /**
  * @param target The target object or function
- * @param middleware
+ * @param middleware or function
  */
-export function registerMiddleware<T> (target: T, middleware: Middleware[]) {
-  const current: Middleware[] = (target as any)[HOOKS] || [];
-
-  (target as any)[HOOKS] = current.concat(middleware);
+export function setMiddleware<T> (target: T, middleware: Middleware[] | MiddlewareSetter) {
+  (target as any)[HOOKS] = typeof middleware === 'function' ? middleware(getMiddleware(target)) : middleware;
 
   return target;
 }
 
-export function getMiddleware<T> (target: any): Array<Middleware<T>> {
-  return (target && target[HOOKS]) || [];
+/**
+ * @param target The target object
+ * @param middleware or a function that takes current middleware as first argument
+ */
+export function registerMiddleware<T> (target: T, middleware: Middleware[]) {
+  return setMiddleware(target, (current: Middleware[]) => current.concat(middleware));
+}
+
+export function getContextUpdater<T> (target: any): Array<ContextUpdater<T>> {
+  return (target && target[CONTEXT]) || [];
 }
 
 /**
@@ -30,15 +36,11 @@ export function getMiddleware<T> (target: any): Array<Middleware<T>> {
  * @param updaters
  */
 export function registerContextUpdater<T> (target: T, updaters: ContextUpdater[]) {
-  const current: ContextUpdater[] = (target as any)[CONTEXT] || [];
+  const current = getContextUpdater(target);
 
   (target as any)[CONTEXT] = current.concat(updaters);
 
   return target;
-}
-
-export function getContextUpdater<T> (target: any): Array<ContextUpdater<T>> {
-  return (target && target[CONTEXT]) || [];
 }
 
 /**
@@ -79,10 +81,10 @@ export type HookSettings<T = any> = Array<Middleware<T>>|Partial<Omit<FunctionHo
   context: ContextUpdater<T>|Array<ContextUpdater<T>>;
 }>;
 
-export function defaultCollectMiddleware<T = any> (self: any, fn: any, _args: any[]) {
+export function defaultCollectMiddleware<T = any> (self: any, fn: any, args: any[]): Middleware[] {
   return [
     ...getMiddleware<T>(self),
-    ...walkOriginal(fn, getMiddleware)
+    ...(fn && typeof fn.collect === 'function' ? fn.collect(fn, fn.original, args) : getMiddleware(fn))
   ];
 }
 
@@ -99,10 +101,10 @@ export function normalizeOptions<T = any> (opts: any): FunctionHookOptions<T> {
   return { middleware, context: contextUpdaters, collect };
 }
 
-export function collectContextUpdaters<T = any> (self: any, fn: any, _args: any[]) {
+export function collectContextUpdaters<T = any> (self: any, fn: any, args: any[]): ContextUpdater[] {
   return [
     ...getContextUpdater<T>(self),
-    ...walkOriginal(fn, getContextUpdater)
+    ...(fn.original ? collectContextUpdaters(fn, fn.original, args) : getContextUpdater(fn))
   ];
 }
 
@@ -124,22 +126,38 @@ export function withParams<T = any> (...params: Array<string | [string, any]>) {
       context[name] = args[index] === undefined ? defaultValue : args[index];
     });
 
-    if (!context.arguments) {
-      if (params.length > 0) {
-        Object.defineProperty(context, 'arguments', {
-          get (this: HookContext<T>) {
-            const result = params.map(param => {
-              const name = typeof param === 'string' ? param : param[0];
-              return this[name];
+    if (params.length > 0) {
+      Object.defineProperty(context, 'arguments', {
+        enumerable: true,
+        get (this: HookContext<T>) {
+          const result: any = [];
+
+          params.forEach((param, index) => {
+            const name = typeof param === 'string' ? param : param[0];
+
+            Object.defineProperty(result, index, {
+              enumerable: true,
+              configurable: true,
+              get: () => this[name],
+              set: (value) => {
+                this[name] = value;
+                if (result[index] !== this[name]) {
+                  result[index] = value;
+                }
+              }
             });
 
-            return Object.freeze(result);
-          }
-        });
-      } else {
-        context.arguments = args;
-      }
+            this[name] = result[index];
+          });
+
+          return result;
+        }
+      });
+    } else if (!context.arguments) {
+      context.arguments = args;
     }
+
+    Object.seal(context.arguments);
 
     if (self) {
       context.self = self;
