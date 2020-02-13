@@ -335,7 +335,6 @@ describe('functionHooks', () => {
       sayHi: hooks([hook]).params('name')
     });
 
-    // TODO (help) TypeScript fails with `obj.sayHi()` and not fails without await
     const result = await obj.sayHi('Dave');
 
     assert.equal(result, 'Hi Dave!');
