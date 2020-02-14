@@ -1,8 +1,8 @@
 import { strict as assert } from 'assert';
 import {
   hooks, HookContext, functionHooks,
-  NextFunction, getMiddleware, registerMiddleware,
-  withParams, withProps
+  NextFunction, getMiddleware, setMiddleware, registerMiddleware,
+  withParams, withProps, Middleware
 } from '../src/';
 
 describe('functionHooks', () => {
@@ -24,6 +24,24 @@ describe('functionHooks', () => {
 
     assert.notDeepEqual(fn, hello);
     assert.deepEqual(getMiddleware(fn), []);
+  });
+
+  it('can manually set an array of middleware', () => {
+    const fn = hooks(hello, []) as any;
+    const mw = [(_ctx: any, next: any) => next()];
+
+    setMiddleware(fn, mw);
+
+    assert.deepEqual(getMiddleware(fn), mw);
+  });
+
+  it('can manually set middleware with a function', () => {
+    const noop = (_ctx: any, next: any) => next();
+    const fn = hooks(hello, [noop]) as any;
+
+    setMiddleware(fn, (current: Middleware[]) => [...current, noop]);
+
+    assert.deepEqual(getMiddleware(fn), [noop, noop]);
   });
 
   it('can override arguments, has context', async () => {
@@ -338,5 +356,23 @@ describe('functionHooks', () => {
     const result = await obj.sayHi('Dave');
 
     assert.equal(result, 'Hi Dave!');
+  });
+
+  it('conserves method properties', async () => {
+    const TEST = Symbol('test');
+    const hello = (name: any) => `Hi ${name}`;
+    (hello as any)[TEST] = true;
+
+    const sayHi = hooks(hello, [
+      async (context, next) => {
+        await next();
+        context.result += '!';
+      }
+    ]);
+
+    const result = await sayHi('Bertho');
+
+    assert.equal(result, 'Hi Bertho!');
+    assert.equal((sayHi as any)[TEST], (hello as any)[TEST]);
   });
 });

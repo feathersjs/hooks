@@ -69,6 +69,17 @@ export const functionHooks = <F, T = any>(original: F, opts: HookSettings<T>) =>
   registerContextUpdater(wrapper, updateContext);
   registerMiddleware(wrapper, middleware);
 
+  const originalProps = (Object.keys(original) as any)
+    .concat(Object.getOwnPropertySymbols(original));
+
+  for (const prop of originalProps) {
+    const propDescriptor = Object.getOwnPropertyDescriptor(original, prop);
+
+    if (!wrapper.hasOwnProperty(prop)) {
+      Object.defineProperty(wrapper, prop, propDescriptor);
+    }
+  }
+
   function params (...args: Array<string | [string, any]>): typeof wrapper {
     return registerContextUpdater(wrapper, [withParams(...args)]);
   }
