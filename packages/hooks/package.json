@@ -45,9 +45,9 @@
   },
   "devDependencies": {
     "@types/chai": "^4.2.7",
-    "@types/mocha": "^5.2.7",
+    "@types/mocha": "^7.0.1",
     "@types/node": "^13.1.2",
-    "mocha": "^6.2.2",
+    "mocha": "^7.0.1",
     "shx": "^0.3.2",
     "ts-loader": "^6.2.1",
     "ts-node": "^8.5.4",
