@@ -326,6 +326,38 @@ describe('functionHooks', () => {
     assert.equal(called, 1);
   });
 
+  it('is chainable with .params on function', async () => {
+    const hook = async function (this: any, context: HookContext, next: NextFunction) {
+      await next();
+      context.result += '!';
+    };
+    const exclamation = hooks(hello, [hook]).params(['name', 'Dave']);
+
+    const result = await exclamation();
+
+    assert.equal(result, 'Hello Dave!');
+  });
+
+  it('is chainable with .params on object', async () => {
+    const hook = async function (this: any, context: HookContext, next: NextFunction) {
+      await next();
+      context.result += '!';
+    };
+    const obj = {
+      sayHi (name: any) {
+        return `Hi ${name}`;
+      }
+    };
+
+    hooks(obj, {
+      sayHi: hooks([hook]).params('name')
+    });
+
+    const result = await obj.sayHi('Dave');
+
+    assert.equal(result, 'Hi Dave!');
+  });
+
   it('conserves method properties', async () => {
     const TEST = Symbol('test');
     const hello = (name: any) => `Hi ${name}`;

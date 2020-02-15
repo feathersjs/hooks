@@ -7,14 +7,15 @@ export * from './function';
 export * from './compose';
 export * from './base';
 
-export interface OriginalAddon<F> {
+export interface WrapperAddon<F, T = any> {
   original: F;
+  params: (...params: Array<string | [string, any]>) => F&((...rest: any[]) => Promise<T>);
 }
 
 // hooks(fn, hookSettings)
 export function hooks<F, T = any> (
   fn: F, hooks: HookSettings
-): F&((...rest: any[]) => Promise<T>)&OriginalAddon<F>;
+): F&((...rest: any[]) => Promise<T>)&WrapperAddon<F, T>;
 // hooks(object, hookMap)
 export function hooks<O> (obj: O, hookMap: HookMap): O;
 // @hooks(hookSettings)

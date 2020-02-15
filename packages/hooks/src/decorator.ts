@@ -1,8 +1,13 @@
 import { functionHooks } from './function';
-import { HookContext, registerMiddleware, normalizeOptions, HookSettings } from './base';
+import {
+  HookContext,
+  registerMiddleware,
+  normalizeOptions,
+  HookSettings, withParams
+} from './base';
 
 export const hookDecorator = <T> (hooks: HookSettings<T> = []) => {
-  return (_target: any, method: string, descriptor: TypedPropertyDescriptor<any>): TypedPropertyDescriptor<any> => {
+  const wrapper: any = (_target: any, method: string, descriptor: TypedPropertyDescriptor<any>): TypedPropertyDescriptor<any> => {
     const { context, ...options } = normalizeOptions(hooks);
 
     if (!descriptor) {
@@ -29,4 +34,14 @@ export const hookDecorator = <T> (hooks: HookSettings<T> = []) => {
 
     return descriptor;
   };
+
+  function params (...args: Array<string | [string, any]>): typeof wrapper {
+    const { context, ...options } = normalizeOptions(hooks);
+    return {
+      ...options,
+      context: [...context, withParams(...args)]
+    };
+  }
+
+  return Object.assign(wrapper, { params });
 };
