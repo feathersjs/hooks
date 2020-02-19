@@ -35,7 +35,7 @@ export const hookDecorator = <T> (hooks: HookSettings<T> = []) => {
     return descriptor;
   };
 
-  function params (...args: Array<string | [string, any]>): typeof wrapper {
+  function params (...args: (string | [string, any])[]): typeof wrapper {
     const { context, ...options } = normalizeOptions(hooks);
     return {
       ...options,

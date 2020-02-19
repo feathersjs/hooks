@@ -9,7 +9,7 @@ export * from './base';
 
 export interface WrapperAddon<F, T = any> {
   original: F;
-  params: (...params: Array<string | [string, any]>) => F&((...rest: any[]) => Promise<T>);
+  params: (...params: (string | [string, any])[]) => F&((...rest: any[]) => Promise<T>);
 }
 
 // hooks(fn, hookSettings)

@@ -3,7 +3,7 @@ export type NextFunction = () => Promise<any>;
 
 export type Middleware<T = any> = (context: T, next: NextFunction) => Promise<any>;
 
-export function compose<T = any> (middleware: Array<Middleware<T>>) {
+export function compose<T = any> (middleware: Middleware<T>[]) {
   if (!Array.isArray(middleware)) {
     throw new TypeError('Middleware stack must be an array!');
   }

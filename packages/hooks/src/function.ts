@@ -80,7 +80,7 @@ export const functionHooks = <F, T = any>(original: F, opts: HookSettings<T>) =>
     }
   }
 
-  function params (...args: Array<string | [string, any]>): typeof wrapper {
+  function params (...args: (string | [string, any])[]): typeof wrapper {
     return registerContextUpdater(wrapper, [withParams(...args)]);
   }
 
