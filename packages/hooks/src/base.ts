@@ -117,42 +117,92 @@ export function collectContextUpdaters<T = any> (self: any, fn: any, args: any[]
  */
 export function withParams<T = any> (...params: (string | [string, any])[]) {
   return (self: any, _fn: any, args: any[], context: HookContext<T>) => {
-    params.forEach((param: string | [string, any], index: number) => {
+    const result = params.reduce((accu: any, param: string | [string, any], index: number) => {
       if (typeof param === 'string') {
-        context[param] = args[index];
-        return;
+        // context[param] = args[index];
+        accu[index] = args[index];
+        return accu;
       }
-      const [name, defaultValue] = param;
-      context[name] = args[index] === undefined ? defaultValue : args[index];
-    });
+
+      const [, defaultValue] = param;
+      const value = !(index in args) ? defaultValue : args[index];
+      //
+      // context[name] = value;
+      accu[index] = value;
+
+      return accu;
+    }, []);
 
     if (params.length > 0) {
       Object.defineProperty(context, 'arguments', {
         enumerable: true,
-        get (this: HookContext<T>) {
-          const result: any = [];
+        value: new Proxy(result, {
+          get(target: any, prop: any): any {
+            const param: any = params[prop];
 
-          params.forEach((param, index) => {
-            const name = typeof param === 'string' ? param : param[0];
+            if (params.indexOf(param) !== -1) {
+              const name = typeof param === 'string' ? param : param[0];
 
-            Object.defineProperty(result, index, {
-              enumerable: true,
-              configurable: true,
-              get: () => this[name],
-              set: (value) => {
-                this[name] = value;
-                if (result[index] !== this[name]) {
-                  result[index] = value;
-                }
-              }
-            });
+              return context[name];
+            }
 
-            this[name] = result[index];
-          });
+            return target[prop];
+          },
+          set(target: any, prop: any, value: any): boolean {
+            target[prop] = value;
 
-          return result;
-        }
+            if (prop in params) {
+              const param = params[prop];
+              const name = typeof param === 'string' ? param : param[0];
+
+              context[name] = value;
+            }
+
+            return true;
+          }
+        })
       });
+
+      params.forEach((param, index) => {
+        if (typeof param === 'string') {
+          context.arguments[index] = args[index];
+          context[param] = args[index];
+          return;
+        }
+
+        const [name, defaultValue] = param;
+        const value = !(index in args) ? defaultValue : args[index];
+
+        context.arguments[index] = value;
+        context[name] = value;
+      });
+
+      // Object.defineProperty(context, 'arguments', {
+      //   enumerable: true,
+      //   get (this: HookContext<T>) {
+      //     const result: any = [];
+      //
+      //     params.forEach((param, index) => {
+      //       const name = typeof param === 'string' ? param : param[0];
+      //
+      //       Object.defineProperty(result, index, {
+      //         enumerable: true,
+      //         configurable: true,
+      //         get: () => this[name],
+      //         set: (value) => {
+      //           this[name] = value;
+      //           if (result[index] !== this[name]) {
+      //             result[index] = value;
+      //           }
+      //         }
+      //       });
+      //
+      //       this[name] = result[index];
+      //     });
+      //
+      //     return result;
+      //   }
+      // });
     } else if (!context.arguments) {
       context.arguments = args;
     }

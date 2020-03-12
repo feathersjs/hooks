@@ -226,7 +226,6 @@ describe('functionHooks', () => {
   it('ctx.arguments is configurable with named params', async () => {
     const modifyArgs = async (ctx: HookContext, next: NextFunction) => {
       ctx.arguments[0] = 'Changed';
-      ctx.arguments.push('no');
 
       assert.equal(ctx.name, ctx.arguments[0]);
 
