@@ -119,15 +119,15 @@ export function withParams<T = any> (...params: (string | [string, any])[]) {
   return (self: any, _fn: any, args: any[], context: HookContext<T>) => {
     const result = params.reduce((accu: any, param: string | [string, any], index: number) => {
       if (typeof param === 'string') {
-        // context[param] = args[index];
+        context[param] = args[index];
         accu[index] = args[index];
         return accu;
       }
 
-      const [, defaultValue] = param;
+      const [name, defaultValue] = param;
       const value = !(index in args) ? defaultValue : args[index];
-      //
-      // context[name] = value;
+
+      context[name] = value;
       accu[index] = value;
 
       return accu;
@@ -161,20 +161,6 @@ export function withParams<T = any> (...params: (string | [string, any])[]) {
             return true;
           }
         })
-      });
-
-      params.forEach((param, index) => {
-        if (typeof param === 'string') {
-          context.arguments[index] = args[index];
-          context[param] = args[index];
-          return;
-        }
-
-        const [name, defaultValue] = param;
-        const value = !(index in args) ? defaultValue : args[index];
-
-        context.arguments[index] = value;
-        context[name] = value;
       });
     } else if (!context.arguments) {
       context.arguments = args;
