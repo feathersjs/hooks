@@ -242,7 +242,33 @@ describe('functionHooks', () => {
 
     assert.equal(resultContext, customContext);
     assert.deepEqual(resultContext, new HookContext({
-      arguments: ['Changed'],
+      arguments: ['Changed', {}],
+      name: 'Changed',
+      result: 'Hello Changed'
+    }));
+  });
+
+  it('ctx.arguments is extendable', async () => {
+    const modifyArgs = async (ctx: HookContext, next: NextFunction) => {
+      ctx.arguments[0] = 'Changed';
+      ctx.arguments.push('added arg');
+
+      assert.equal(ctx.name, ctx.arguments[0]);
+
+      await next();
+    };
+
+    const fn = hooks(hello, {
+      middleware: [ modifyArgs ],
+      context: withParams('name')
+    });
+
+    const customContext = new HookContext({});
+    const resultContext = await fn('Daffl', {}, customContext);
+
+    assert.equal(resultContext, customContext);
+    assert.deepEqual(resultContext, new HookContext({
+      arguments: ['Changed', {}, 'added arg'],
       name: 'Changed',
       result: 'Hello Changed'
     }));
@@ -268,7 +294,7 @@ describe('functionHooks', () => {
 
     assert.equal(resultContext, customContext);
     assert.deepEqual(resultContext, new HookContext({
-      arguments: ['Changed'],
+      arguments: ['Changed', {}],
       message: 'Custom message',
       name: 'Changed',
       result: 'Hello Changed'
@@ -295,7 +321,7 @@ describe('functionHooks', () => {
 
     assert.equal(resultContext, customContext);
     assert.deepEqual(resultContext, new HookContext({
-      arguments: ['Changed'],
+      arguments: ['Changed', {}],
       message: 'Custom message',
       name: 'Changed',
       result: 'Hello Changed'

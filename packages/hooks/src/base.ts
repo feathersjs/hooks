@@ -117,24 +117,10 @@ export function collectContextUpdaters<T = any> (self: any, fn: any, args: any[]
  */
 export function withParams<T = any> (...params: (string | [string, any])[]) {
   return (self: any, _fn: any, args: any[], context: HookContext<T>) => {
-    const result = params.map((param: string | [string, any], index: number) => {
-      if (typeof param === 'string') {
-        context[param] = args[index];
-        return args[index];
-      }
-
-      const [name, defaultValue] = param;
-      const value = !(index in args) ? defaultValue : args[index];
-
-      context[name] = value;
-
-      return value;
-    }, []);
-
     if (params.length > 0) {
       Object.defineProperty(context, 'arguments', {
         enumerable: true,
-        value: new Proxy(result, {
+        value: new Proxy(args, {
           get(target: any, prop: any): any {
             const param: any = params[prop];
 
@@ -153,18 +139,34 @@ export function withParams<T = any> (...params: (string | [string, any])[]) {
               const param = params[prop];
               const name = typeof param === 'string' ? param : param[0];
 
-              context[name] = value;
+              if (name) {
+                context[name] = value;
+              }
             }
 
             return true;
           }
         })
       });
+
+      let index = params.length;
+
+      while(index--) {
+        const param = params[index];
+
+        if (typeof param === 'string') {
+          context.arguments[index] = args[index];
+          continue;
+        }
+
+        const [, defaultValue] = param;
+        const value = !(index in args) ? defaultValue : args[index];
+
+        context.arguments[index] = value;
+      }
     } else if (!context.arguments) {
       context.arguments = args;
     }
-
-    Object.seal(context.arguments);
 
     if (self) {
       context.self = self;
