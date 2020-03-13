@@ -117,20 +117,18 @@ export function collectContextUpdaters<T = any> (self: any, fn: any, args: any[]
  */
 export function withParams<T = any> (...params: (string | [string, any])[]) {
   return (self: any, _fn: any, args: any[], context: HookContext<T>) => {
-    const result = params.reduce((accu: any, param: string | [string, any], index: number) => {
+    const result = params.map((param: string | [string, any], index: number) => {
       if (typeof param === 'string') {
         context[param] = args[index];
-        accu[index] = args[index];
-        return accu;
+        return args[index];
       }
 
       const [name, defaultValue] = param;
       const value = !(index in args) ? defaultValue : args[index];
 
       context[name] = value;
-      accu[index] = value;
 
-      return accu;
+      return value;
     }, []);
 
     if (params.length > 0) {
