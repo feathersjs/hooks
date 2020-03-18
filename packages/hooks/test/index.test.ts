@@ -2,7 +2,7 @@
 // import { hooks, ORIGINAL, HOOKS, RETURN } from '../src';
 // import { NextFunction } from '../src/compose';
 
-describe('async-hooks', () => {
+// describe('async-hooks', () => {
   // describe('hookDecorator', () => {
   //   const obj = {
   //     test: 'me',
@@ -50,4 +50,4 @@ describe('async-hooks', () => {
   //     }
   //   });
   // });
-});
+// });

@@ -1,35 +1,28 @@
 import { Middleware } from './compose';
 import { functionHooks } from './function';
-import { HookContext, registerMiddleware, normalizeOptions, HookSettings } from './base';
+import { HookManager, setMiddleware } from './base';
 
 export interface HookMap {
-  [key: string]: HookSettings;
+  [key: string]: HookManager;
 }
 
-export const objectHooks = (_obj: any, hooks: HookMap|Middleware[]) => {
+export function objectHooks (_obj: any, hooks: HookMap|Middleware[]) {
   const obj = typeof _obj === 'function' ? _obj.prototype : _obj;
 
   if (Array.isArray(hooks)) {
-    return registerMiddleware(obj, hooks);
+    return setMiddleware(obj, hooks);
   }
 
   return Object.keys(hooks).reduce((result, method) => {
-    const value = obj[method];
-    const { context, ...options } = normalizeOptions(hooks[method]);
+    const fn = obj[method];
 
-    if (typeof value !== 'function') {
+    if (typeof fn !== 'function') {
       throw new Error(`Can not apply hooks. '${method}' is not a function`);
     }
 
-    context.push((_self: any, _fn: any, _args: any[], ctx: HookContext) => {
-      ctx.method = method;
-      return ctx;
-    });
+    const manager = hooks[method];
 
-    result[method] = functionHooks(value, {
-      ...options,
-      context
-    });
+    result[method] = functionHooks(fn, manager.props({ method }));
 
     return result;
   }, obj);

@@ -1,32 +1,42 @@
 import { functionHooks } from './function';
-import { HookSettings } from './base';
+import { Middleware } from './compose';
 import { objectHooks, HookMap } from './object';
-import { hookDecorator } from './decorator';
+// import { hookDecorator } from './decorator';
+import { HookManager, HookContextData, HookContext, HookContextConstructor } from './base';
 
 export * from './function';
 export * from './compose';
 export * from './base';
 
-export interface WrapperAddon<F, T = any> {
+export interface WrapperAddon<F> {
   original: F;
-  params: (...params: (string | [string, any])[]) => F&((...rest: any[]) => Promise<T>);
+  Context: HookContextConstructor;
+  createContext: (data?: HookContextData) => HookContext;
+}
+
+export type WrappedFunction<F, T> = F&((...rest: any[]) => Promise<T>|Promise<HookContext>)&WrapperAddon<F>;
+
+export function middleware (mw: Middleware[]) {
+  const manager = new HookManager();
+
+  return manager.middleware(mw);
 }
 
 // hooks(fn, hookSettings)
 export function hooks<F, T = any> (
-  fn: F, hooks: HookSettings
-): F&((...rest: any[]) => Promise<T>)&WrapperAddon<F, T>;
+  fn: F, manager: HookManager
+): WrappedFunction<F, T>;
 // hooks(object, hookMap)
-export function hooks<O> (obj: O, hookMap: HookMap): O;
+export function hooks<O> (obj: O, hookMap: HookMap|Middleware[]): O;
 // @hooks(hookSettings)
-export function hooks<T = any> (
-  hooks?: HookSettings
-): any;
+// export function hooks<T = any> (
+//   hooks?: HookSettings
+// ): any;
 // Fallthrough to actual implementation
 export function hooks (...args: any[]) {
   const [ target, _hooks ] = args;
 
-  if (typeof target === 'function' && Array.isArray(_hooks.middleware || _hooks)) {
+  if (typeof target === 'function' && _hooks instanceof HookManager) {
     return functionHooks(target, _hooks);
   }
 
@@ -34,5 +44,5 @@ export function hooks (...args: any[]) {
     return objectHooks(target, _hooks);
   }
 
-  return hookDecorator(target);
+  // return hookDecorator(target);
 }
