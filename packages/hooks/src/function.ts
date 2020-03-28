@@ -17,10 +17,14 @@ function getOriginal (fn: any): any {
  * @param original The function to wrap
  * @param opts A list of hooks (middleware) or options for more detailed hook processing
  */
-export function functionHooks <F> (fn: F, manager: HookManager) {
+export function functionHooks <F> (fn: F, managerOrMiddleware: HookManager|Middleware[]) {
   if (typeof fn !== 'function') {
     throw new Error('Can not apply hooks to non-function');
   }
+
+  const manager: HookManager = Array.isArray(managerOrMiddleware)
+      ? new HookManager().middleware(managerOrMiddleware)
+      : managerOrMiddleware;
 
   const wrapper: any = function (this: any, ...args: any[]) {
     const { Context, original } = wrapper;

@@ -33,8 +33,9 @@ describe('objectHooks', () => {
     const hookedObj = hooks(obj, {
       sayHi: middleware([async (ctx: HookContext, next: NextFunction) => {
         assert.equal(ctx.method, 'sayHi');
-        assert.deepEqual(ctx, obj.sayHi.createContext({
+        assert.deepEqual(ctx, new obj.sayHi.Context({
           arguments: [ 'David' ],
+          method: 'sayHi',
           self: obj
         }));
 
@@ -57,7 +58,7 @@ describe('objectHooks', () => {
   it('hooks object and allows to customize context for method', async () => {
     const hookedObj = hooks(obj, {
       sayHi: middleware([async (ctx: HookContext, next: NextFunction) => {
-        assert.deepStrictEqual(ctx, new HookContext({
+        assert.deepStrictEqual(ctx, new obj.sayHi.Context({
           arguments: ['David'],
           method: 'sayHi',
           name: 'David',
@@ -119,11 +120,11 @@ describe('objectHooks', () => {
   it('hooking object on class adds to the prototype', async () => {
     hooks(DummyClass, {
       sayHi: middleware([async (ctx: HookContext, next: NextFunction) => {
-        assert.deepStrictEqual(ctx, new HookContext({
+        assert.deepStrictEqual(ctx, new DummyClass.prototype.sayHi.Context({
           arguments: ['David'],
-          self: instance,
           method: 'sayHi',
-          name: 'David'
+          name: 'David',
+          self: instance
         }));
 
         await next();
@@ -147,7 +148,7 @@ describe('objectHooks', () => {
   it('works with inheritance', async () => {
     hooks(DummyClass, {
       sayHi: middleware([async (ctx: HookContext, next: NextFunction) => {
-        assert.deepStrictEqual(ctx, new HookContext({
+        assert.deepStrictEqual(ctx, new OtherDummy.prototype.sayHi.Context({
           arguments: [ 'David' ],
           method: 'sayHi',
           self: instance

@@ -68,7 +68,7 @@ export class HookManager {
   }
 
   props (props: HookContextData) {
-    this._props = props;
+    Object.assign(this._props, props);
 
     return this;
   }
@@ -100,20 +100,21 @@ export class HookManager {
   getContextClass (Base: HookContextConstructor = HookContext): HookContextConstructor {
     const ContextClass = class ContextClass extends Base {};
     const params = this.getParams();
+    const props = this.getProps();
 
     params.forEach((name, index) => {
       Object.defineProperty(ContextClass.prototype, name, {
         enumerable: true,
-        get () {
+        get() {
           return this.arguments[index];
         },
-        set (value: any) {
+        set(value: any) {
           this.arguments[index] = value;
         }
-      })
+      });
     });
 
-    Object.assign(ContextClass.prototype, this.getProps());
+    Object.assign(ContextClass.prototype, props);
 
     return ContextClass;
   }
@@ -126,6 +127,10 @@ export class HookManager {
     }
 
     ctx.arguments = args;
+
+    for (const key in ctx) {
+      ctx[key] = ctx[key];
+    }
 
     return ctx;
   }
