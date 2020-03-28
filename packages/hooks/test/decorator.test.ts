@@ -1,69 +1,65 @@
-// import { strict as assert } from 'assert';
-// import { hooks, HookContext, withParams, NextFunction } from '../src';
+import { strict as assert } from 'assert';
+import { hooks, HookContext, NextFunction, middleware } from '../src';
 
-// describe('hookDecorator', () => {
-//   it('hook decorator on method and classes with inheritance', async () => {
-//     const expectedName = 'David NameFromTopLevel NameFromDummyClass';
+describe('hookDecorator', () => {
+  it('hook decorator on method and classes with inheritance', async () => {
+    const expectedName = 'David NameFromTopLevel NameFromDummyClass';
 
-//     @hooks([async (ctx, next) => {
-//       ctx.name += ' NameFromTopLevel';
+    @hooks([async (ctx, next) => {
+      ctx.name += ' NameFromTopLevel';
 
-//       await next();
+      await next();
 
-//       ctx.result += ' ResultFromTopLevel';
-//     }])
-//     class TopLevel {}
+      ctx.result += ' ResultFromTopLevel';
+    }])
+    class TopLevel {}
 
-//     @hooks([async (ctx, next) => {
-//       ctx.name += ' NameFromDummyClass';
+    @hooks([async (ctx, next) => {
+      ctx.name += ' NameFromDummyClass';
 
-//       await next();
+      await next();
 
-//       ctx.result += ' ResultFromDummyClass';
-//     }])
-//     class DummyClass extends TopLevel {
-//       @hooks({
-//         middleware: [async (ctx: HookContext, next: NextFunction) => {
-//           assert.deepStrictEqual(ctx, new HookContext({
-//             method: 'sayHi',
-//             self: instance,
-//             arguments: ['David NameFromTopLevel NameFromDummyClass'],
-//             name: expectedName
-//           }));
+      ctx.result += ' ResultFromDummyClass';
+    }])
+    class DummyClass extends TopLevel {
+      @hooks(middleware([
+        async (ctx: HookContext, next: NextFunction) => {
+          assert.equal(ctx.method, 'sayHi');
+          assert.deepEqual(ctx.arguments, ['David NameFromTopLevel NameFromDummyClass']);
+          assert.deepEqual(ctx.name, expectedName);
 
-//           await next();
+          await next();
 
-//           ctx.result += ' ResultFromMethodDecorator';
-//         }],
-//         context: withParams('name')
-//       })
-//       async sayHi (name: string) {
-//         return `Hi ${name}`;
-//       }
+          ctx.result += ' ResultFromMethodDecorator';
+        }
+      ]).params('name'))
+      async sayHi (name: string) {
+        return `Hi ${name}`;
+      }
 
-//       @hooks()
-//       async hookedFn () {
-//         return 'Hooks with nothing';
-//       }
+      @hooks()
+      async hookedFn () {
+        return 'Hooks with nothing';
+      }
 
-//       @hooks([async (_ctx: HookContext, next: NextFunction) => next()])
-//       async sayWorld () {
-//         return 'World';
-//       }
-//     }
+      @hooks([async (_ctx: HookContext, next: NextFunction) => next()])
+      async sayWorld () {
+        return 'World';
+      }
+    }
 
-//     const instance = new DummyClass();
+    const instance = new DummyClass();
 
-//     assert.strictEqual(await instance.sayHi('David'),
-//       `Hi ${expectedName} ResultFromMethodDecorator ResultFromDummyClass ResultFromTopLevel`
-//     );
-//   });
+    assert.strictEqual(await instance.sayHi('David'),
+      `Hi ${expectedName} ResultFromMethodDecorator ResultFromDummyClass ResultFromTopLevel`
+    );
+  });
 
-//   it('error cases', () => {
-//     assert.throws(() => hooks([])({}, 'test', {
-//       value: 'not a function'
-//     }), {
-//       message: `Can not apply hooks. 'test' is not a function`
-//     });
-//   });
-// });
+  it('error cases', () => {
+    assert.throws(() => hooks([])({}, 'test', {
+      value: 'not a function'
+    }), {
+      message: `Can not apply hooks. 'test' is not a function`
+    });
+  });
+});

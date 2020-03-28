@@ -1,6 +1,6 @@
 import { compose, Middleware } from './compose';
 import {
-  HookContext, HookManager, setManager, HookContextData, copyProperties
+  HookContext, setManager, HookContextData, copyProperties, HookOptions, convertOptions
 } from './base';
 
 function getOriginal (fn: any): any {
@@ -17,15 +17,12 @@ function getOriginal (fn: any): any {
  * @param original The function to wrap
  * @param opts A list of hooks (middleware) or options for more detailed hook processing
  */
-export function functionHooks <F> (fn: F, managerOrMiddleware: HookManager|Middleware[]) {
+export function functionHooks <F> (fn: F, managerOrMiddleware: HookOptions) {
   if (typeof fn !== 'function') {
     throw new Error('Can not apply hooks to non-function');
   }
 
-  const manager: HookManager = Array.isArray(managerOrMiddleware)
-      ? new HookManager().middleware(managerOrMiddleware)
-      : managerOrMiddleware;
-
+  const manager = convertOptions(managerOrMiddleware);
   const wrapper: any = function (this: any, ...args: any[]) {
     const { Context, original } = wrapper;
     // If we got passed an existing HookContext instance, we want to return it as well

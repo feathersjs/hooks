@@ -1,9 +1,9 @@
 import { Middleware } from './compose';
 import { functionHooks } from './function';
-import { HookManager, setMiddleware } from './base';
+import { setMiddleware, convertOptions, HookOptions } from './base';
 
 export interface HookMap {
-  [key: string]: HookManager;
+  [key: string]: HookOptions;
 }
 
 export function objectHooks (_obj: any, hooks: HookMap|Middleware[]) {
@@ -20,7 +20,7 @@ export function objectHooks (_obj: any, hooks: HookMap|Middleware[]) {
       throw new Error(`Can not apply hooks. '${method}' is not a function`);
     }
 
-    const manager = hooks[method];
+    const manager = convertOptions(hooks[method]);
 
     result[method] = functionHooks(fn, manager.props({ method }));
 

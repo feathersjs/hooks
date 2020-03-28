@@ -1,8 +1,8 @@
 import { functionHooks } from './function';
 import { Middleware } from './compose';
 import { objectHooks, HookMap } from './object';
-// import { hookDecorator } from './decorator';
-import { HookManager, HookContextData, HookContext, HookContextConstructor } from './base';
+import { hookDecorator } from './decorator';
+import { HookManager, HookContextData, HookContext, HookContextConstructor, HookOptions } from './base';
 
 export * from './function';
 export * from './compose';
@@ -22,16 +22,16 @@ export function middleware (mw: Middleware[]) {
   return manager.middleware(mw);
 }
 
-// hooks(fn, hookSettings)
+// hooks(fn, hookOptions)
 export function hooks<F, T = any> (
   fn: F, manager: HookManager
 ): WrappedFunction<F, T>;
 // hooks(object, hookMap)
 export function hooks<O> (obj: O, hookMap: HookMap|Middleware[]): O;
-// @hooks(hookSettings)
-// export function hooks<T = any> (
-//   hooks?: HookSettings
-// ): any;
+// @hooks(hookOptions)
+export function hooks<T = any> (
+  _manager?: HookOptions
+): any;
 // Fallthrough to actual implementation
 export function hooks (...args: any[]) {
   const [ target, _hooks ] = args;
@@ -44,5 +44,5 @@ export function hooks (...args: any[]) {
     return objectHooks(target, _hooks);
   }
 
-  // return hookDecorator(target);
+  return hookDecorator(target);
 }

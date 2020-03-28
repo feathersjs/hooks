@@ -105,10 +105,10 @@ export class HookManager {
     params.forEach((name, index) => {
       Object.defineProperty(ContextClass.prototype, name, {
         enumerable: true,
-        get() {
+        get () {
           return this.arguments[index];
         },
-        set(value: any) {
+        set (value: any) {
           this.arguments[index] = value;
         }
       });
@@ -128,12 +128,19 @@ export class HookManager {
 
     ctx.arguments = args;
 
+    // tslint:disable-next-line
     for (const key in ctx) {
       ctx[key] = ctx[key];
     }
 
     return ctx;
   }
+}
+
+export type HookOptions = HookManager|Middleware[];
+
+export function convertOptions (options: HookOptions = []) {
+  return Array.isArray(options) ? new HookManager().middleware(options) : options;
 }
 
 export function getManager (target: any): HookManager|null {
