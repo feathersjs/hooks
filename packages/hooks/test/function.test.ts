@@ -345,7 +345,7 @@ describe('functionHooks', () => {
     assert.equal((sayHi as any)[TEST], (hello as any)[TEST]);
   });
 
-  it('context as own properties', async () => {
+  it('context has own properties', async () => {
     const fn = hooks(hello, middleware([]).params('name'));
 
     const customContext = fn.createContext({ message: 'Hi !' });
