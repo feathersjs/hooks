@@ -36,7 +36,7 @@ export function hooks<T = any> (
 export function hooks (...args: any[]) {
   const [ target, _hooks ] = args;
 
-  if (typeof target === 'function' && _hooks instanceof HookManager) {
+  if (typeof target === 'function' && (_hooks instanceof HookManager || Array.isArray(_hooks))) {
     return functionHooks(target, _hooks);
   }
 

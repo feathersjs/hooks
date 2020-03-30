@@ -326,4 +326,31 @@ describe('functionHooks', () => {
     assert.equal(result, 'Hi Bertho!');
     assert.equal((sayHi as any)[TEST], (hello as any)[TEST]);
   });
+
+  it('works with array as middleware', async () => {
+    const TEST = Symbol('test');
+    const hello = (name: any) => `Hi ${name}`;
+    (hello as any)[TEST] = true;
+
+    const sayHi = hooks(hello, [
+      async (context, next) => {
+        await next();
+        context.result += '!';
+      }
+    ]);
+
+    const result = await sayHi('Bertho');
+
+    assert.equal(result, 'Hi Bertho!');
+    assert.equal((sayHi as any)[TEST], (hello as any)[TEST]);
+  });
+
+  it('context as own properties', async () => {
+    const fn = hooks(hello, middleware([]).params('name'));
+
+    const customContext = fn.createContext({ message: 'Hi !' });
+    const resultContext: HookContext = await fn('Dave', {}, customContext);
+
+    assert.deepEqual(Object.keys(resultContext), ['message', 'name', 'arguments', 'result']);
+  });
 });

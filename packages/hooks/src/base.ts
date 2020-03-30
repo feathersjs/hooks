@@ -98,7 +98,25 @@ export class HookManager {
   }
 
   getContextClass (Base: HookContextConstructor = HookContext): HookContextConstructor {
-    const ContextClass = class ContextClass extends Base {};
+    const ContextClass = class ContextClass extends Base {
+      constructor(data: any) {
+        super(data);
+
+        // tslint:disable-next-line
+        for (const key in this) {
+          if (!this.hasOwnProperty(key)) {
+            const getter = this.constructor.prototype.__lookupGetter__(key);
+
+            if (getter) {
+              this.__defineGetter__(key, getter);
+              this.__defineSetter__(key, this.constructor.prototype.__lookupSetter__(key));
+            } else {
+              this[key] = this[key];
+            }
+          }
+        }
+      }
+    };
     const params = this.getParams();
     const props = this.getProps();
 
@@ -127,11 +145,6 @@ export class HookManager {
     }
 
     ctx.arguments = args;
-
-    // tslint:disable-next-line
-    for (const key in ctx) {
-      ctx[key] = ctx[key];
-    }
 
     return ctx;
   }
