@@ -1,11 +1,8 @@
 import { compose, Middleware } from './compose';
 import {
-  HookContext, setManager, HookContextData, copyProperties, HookOptions, convertOptions
+  HookContext, setManager, HookContextData, HookOptions, convertOptions
 } from './base';
-
-function getOriginal (fn: any): any {
-  return typeof fn.original === 'function' ? getOriginal(fn.original) : fn;
-}
+import { getOriginal, copyProperties } from './utils';
 
 /**
  * Returns a new function that is wrapped in the given hooks.

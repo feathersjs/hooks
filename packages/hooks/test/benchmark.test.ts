@@ -21,7 +21,7 @@ describe('hook benchmark', () => {
 
   before(async () => {
     baseline = await getRuntime(() => hello('Dave'));
-    threshold = baseline * 25;
+    threshold = baseline * 20;
   });
 
   it('empty hook', async () => {

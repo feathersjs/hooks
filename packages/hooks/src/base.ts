@@ -1,19 +1,5 @@
 import { Middleware } from './compose';
-
-export function copyProperties <F> (target: F, original: any) {
-  const originalProps = (Object.keys(original) as any)
-    .concat(Object.getOwnPropertySymbols(original));
-
-  for (const prop of originalProps) {
-    const propDescriptor = Object.getOwnPropertyDescriptor(original, prop);
-
-    if (!target.hasOwnProperty(prop)) {
-      Object.defineProperty(target, prop, propDescriptor);
-    }
-  }
-
-  return target;
-}
+import { copyToSelf } from './utils';
 
 export const HOOKS: string = Symbol('@feathersjs/hooks') as any;
 
@@ -99,22 +85,10 @@ export class HookManager {
 
   getContextClass (Base: HookContextConstructor = HookContext): HookContextConstructor {
     const ContextClass = class ContextClass extends Base {
-      constructor(data: any) {
+      constructor (data: any) {
         super(data);
 
-        // tslint:disable-next-line
-        for (const key in this) {
-          if (!this.hasOwnProperty(key)) {
-            const getter = this.constructor.prototype.__lookupGetter__(key);
-
-            if (getter) {
-              this.__defineGetter__(key, getter);
-              this.__defineSetter__(key, this.constructor.prototype.__lookupSetter__(key));
-            } else {
-              this[key] = this[key];
-            }
-          }
-        }
+        copyToSelf(this);
       }
     };
     const params = this.getParams();
