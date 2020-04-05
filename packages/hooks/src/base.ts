@@ -1,47 +1,9 @@
 import { Middleware } from './compose';
+import { copyToSelf } from './utils';
 
 export const HOOKS: string = Symbol('@feathersjs/hooks') as any;
-export const CONTEXT: string = Symbol('@feathersjs/hooks/context') as any;
 
-export function getMiddleware<T> (target: any): Middleware<T>[] {
-  return (target && target[HOOKS]) || [];
-}
-
-export type MiddlewareSetter = (currentMiddleware: Middleware[]) => Middleware[];
-
-/**
- * @param target The target object or function
- * @param middleware or function
- */
-export function setMiddleware<T> (target: T, middleware: Middleware[] | MiddlewareSetter) {
-  (target as any)[HOOKS] = typeof middleware === 'function' ? middleware(getMiddleware(target)) : middleware;
-
-  return target;
-}
-
-/**
- * @param target The target object
- * @param middleware or a function that takes current middleware as first argument
- */
-export function registerMiddleware<T> (target: T, middleware: Middleware[]) {
-  return setMiddleware(target, (current: Middleware[]) => current.concat(middleware));
-}
-
-export function getContextUpdater<T> (target: any): ContextUpdater<T>[] {
-  return (target && target[CONTEXT]) || [];
-}
-
-/**
- * @param target The target object or function
- * @param updaters
- */
-export function registerContextUpdater<T> (target: T, updaters: ContextUpdater[]) {
-  const current = getContextUpdater(target);
-
-  (target as any)[CONTEXT] = current.concat(updaters);
-
-  return target;
-}
+export type HookContextData = { [key: string]: any };
 
 /**
  * The base hook context.
@@ -53,129 +15,141 @@ export class HookContext<T = any, C = any> {
   arguments: any[];
   [key: string]: any;
 
-  constructor (data: { [key: string]: any } = {}) {
+  constructor (data: HookContextData = {}) {
     Object.assign(this, data);
   }
 }
 
-/**
- * A function that updates the hook context with the `this` reference and
- * arguments of the function call.
- */
-export type ContextUpdater<T = any> = (self: any, fn: any, args: any[], context: HookContext<T>) => HookContext<T>;
-/**
- * A function that for a given function, calling context and arguments returns the list of hooks
- */
-export type MiddlewareCollector<T = any> = (self: any, fn: any, args: any[]) => Middleware<T>[];
+export type HookContextConstructor = new (data?: { [key: string]: any }) => HookContext;
 
-/**
- * Available options when initializing hooks with more than just an array of middleware
- */
-export interface FunctionHookOptions<T = any> {
-  middleware: Middleware<T>[];
-  context: ContextUpdater<T>[];
-  collect: MiddlewareCollector<T>;
-}
+export class HookManager {
+  _parent?: this|null = null;
+  _params: string[] = [];
+  _middleware: Middleware[] = [];
+  _props: HookContextData = {};
+  _defaults: HookContextData|(() => HookContextData) = {};
 
-export type HookSettings<T = any> = Middleware<T>[]|Partial<Omit<FunctionHookOptions, 'context'> & {
-  context: ContextUpdater<T>|ContextUpdater<T>[];
-}>;
+  parent (parent: this) {
+    this._parent = parent;
 
-export function defaultCollectMiddleware<T = any> (self: any, fn: any, args: any[]): Middleware[] {
-  return [
-    ...getMiddleware<T>(self),
-    ...(fn && typeof fn.collect === 'function' ? fn.collect(fn, fn.original, args) : getMiddleware(fn))
-  ];
-}
+    return this;
+  }
 
-export function normalizeOptions<T = any> (opts: any): FunctionHookOptions<T> {
-  const options: Partial<FunctionHookOptions> = Array.isArray(opts) ? { middleware: opts } : opts;
-  const {
-    middleware = [],
-    context = withParams(),
-    collect = defaultCollectMiddleware
-  } = options;
+  middleware (middleware: Middleware[]) {
+    this._middleware = middleware;
 
-  const contextUpdaters = Array.isArray(context) ? context : [context];
+    return this;
+  }
 
-  return { middleware, context: contextUpdaters, collect };
-}
+  getMiddleware (): Middleware[] {
+    const previous = this._parent ? this._parent.getMiddleware() : [];
 
-export function collectContextUpdaters<T = any> (self: any, fn: any, args: any[]): ContextUpdater[] {
-  return [
-    ...getContextUpdater<T>(self),
-    ...(fn.original ? collectContextUpdaters(fn, fn.original, args) : getContextUpdater(fn))
-  ];
-}
+    return previous.concat(this._middleware);
+  }
 
-/**
- * Returns a ContextUpdater function that turns function arguments like
- * `function (data, name)` into named properties (`context.data`, `context.name`)
- * on the hook context
- *
- * @param params The list of parameter names
- */
-export function withParams<T = any> (...params: (string | [string, any])[]) {
-  return (self: any, _fn: any, args: any[], context: HookContext<T>) => {
-    params.forEach((param: string | [string, any], index: number) => {
-      if (typeof param === 'string') {
-        context[param] = args[index];
-        return;
+  collectMiddleware (self: any, _args: any[]): Middleware[] {
+    const otherMiddleware = getMiddleware(self);
+
+    return otherMiddleware.concat(this.getMiddleware().reverse());
+  }
+
+  props (props: HookContextData) {
+    Object.assign(this._props, props);
+
+    return this;
+  }
+
+  getProps (): HookContextData {
+    const previous = this._parent ? this._parent.getProps() : {};
+
+    return Object.assign({}, previous, this._props);
+  }
+
+  params (...params: string[]) {
+    this._params = params;
+
+    return this;
+  }
+
+  getParams (): string[] {
+    const previous = this._parent ? this._parent.getParams() : [];
+
+    return previous.concat(this._params);
+  }
+
+  defaults (defaults: HookContextData|(() => HookContextData)) {
+    this._defaults = defaults;
+
+    return this;
+  }
+
+  getContextClass (Base: HookContextConstructor = HookContext): HookContextConstructor {
+    const ContextClass = class ContextClass extends Base {
+      constructor (data: any) {
+        super(data);
+
+        copyToSelf(this);
       }
-      const [name, defaultValue] = param;
-      context[name] = args[index] === undefined ? defaultValue : args[index];
-    });
+    };
+    const params = this.getParams();
+    const props = this.getProps();
 
-    if (params.length > 0) {
-      Object.defineProperty(context, 'arguments', {
+    params.forEach((name, index) => {
+      Object.defineProperty(ContextClass.prototype, name, {
         enumerable: true,
-        get (this: HookContext<T>) {
-          const result: any = [];
-
-          params.forEach((param, index) => {
-            const name = typeof param === 'string' ? param : param[0];
-
-            Object.defineProperty(result, index, {
-              enumerable: true,
-              configurable: true,
-              get: () => this[name],
-              set: (value) => {
-                this[name] = value;
-                if (result[index] !== this[name]) {
-                  result[index] = value;
-                }
-              }
-            });
-
-            this[name] = result[index];
-          });
-
-          return result;
+        get () {
+          return this.arguments[index];
+        },
+        set (value: any) {
+          this.arguments[index] = value;
         }
       });
-    } else if (!context.arguments) {
-      context.arguments = args;
-    }
+    });
 
-    Object.seal(context.arguments);
+    Object.assign(ContextClass.prototype, props);
+
+    return ContextClass;
+  }
+
+  initializeContext (self: any, args: any[], context: HookContext): HookContext {
+    const ctx = this._parent ? this._parent.initializeContext(self, args, context) : context;
 
     if (self) {
-      context.self = self;
+      ctx.self = self;
     }
 
-    return context;
-  };
+    ctx.arguments = args;
+
+    return ctx;
+  }
 }
 
-/**
- * Returns a ContextUpdater function that adds props on the hook context
- *
- * @param props The props object to assign
- */
-export function withProps<T = any> (props: any) {
-  return (_self: any, _fn: any, _args: any[], context: HookContext<T>) => {
-    Object.assign(context, props);
+export type HookOptions = HookManager|Middleware[];
 
-    return context;
-  };
+export function convertOptions (options: HookOptions = []) {
+  return Array.isArray(options) ? new HookManager().middleware(options) : options;
+}
+
+export function getManager (target: any): HookManager|null {
+  return (target && target[HOOKS]) || null;
+}
+
+export function setManager<T> (target: T, manager: HookManager) {
+  const parent = getManager(target);
+
+  (target as any)[HOOKS] = manager.parent(parent);
+
+  return target;
+}
+
+export function getMiddleware (target: any): Middleware[] {
+  const manager = getManager(target);
+
+  return manager ? manager.getMiddleware() : [];
+}
+
+export function setMiddleware<T> (target: T, middleware: Middleware[]) {
+  const manager = new HookManager().middleware(middleware);
+
+  return setManager(target, manager);
 }

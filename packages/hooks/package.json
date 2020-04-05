@@ -35,7 +35,7 @@
     "compile": "shx rm -rf lib/ && tsc",
     "build": "npm run compile && npm run build:deno && npm run build:browser",
     "prepublish": "npm run build",
-    "test": "mocha --opts ../../mocha.opts --recursive test/**.test.ts test/**/*.test.ts"
+    "test": "mocha --config ../../.mocharc.json --recursive test/**.test.ts test/**/*.test.ts"
   },
   "directories": {
     "lib": "lib"

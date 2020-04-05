@@ -1,5 +1,5 @@
 import { strict as assert } from 'assert';
-import { hooks, HookContext, withParams, NextFunction } from '../src';
+import { hooks, HookContext, NextFunction, middleware } from '../src';
 
 describe('hookDecorator', () => {
   it('hook decorator on method and classes with inheritance', async () => {
@@ -22,21 +22,17 @@ describe('hookDecorator', () => {
       ctx.result += ' ResultFromDummyClass';
     }])
     class DummyClass extends TopLevel {
-      @hooks({
-        middleware: [async (ctx: HookContext, next: NextFunction) => {
-          assert.deepStrictEqual(ctx, new HookContext({
-            method: 'sayHi',
-            self: instance,
-            arguments: ['David NameFromTopLevel NameFromDummyClass'],
-            name: expectedName
-          }));
+      @hooks(middleware([
+        async (ctx: HookContext, next: NextFunction) => {
+          assert.equal(ctx.method, 'sayHi');
+          assert.deepEqual(ctx.arguments, ['David NameFromTopLevel NameFromDummyClass']);
+          assert.deepEqual(ctx.name, expectedName);
 
           await next();
 
           ctx.result += ' ResultFromMethodDecorator';
-        }],
-        context: withParams('name')
-      })
+        }
+      ]).params('name'))
       async sayHi (name: string) {
         return `Hi ${name}`;
       }
