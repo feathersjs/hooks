@@ -25,14 +25,18 @@ To a function or class without having to change its original code while also kee
   - [TypeScript](#typescript)
 - [Documentation](#documentation)
   - [Middleware](#middleware)
-  - [Options](#options)
   - [Hook Context](#hook-context)
     - [Context properties](#context-properties)
     - [Arguments](#arguments)
     - [Using named parameters](#using-named-parameters)
+    - [Default values](#default-values)
     - [Modifying the result](#modifying-the-result)
     - [Calling the original](#calling-the-original)
     - [Customizing and returning the context](#customizing-and-returning-the-context)
+  - [Options](#options)
+    - [params(...names)](#paramsnames)
+    - [props](#props)
+    - [defaults](#defaults)
   - [Function hooks](#function-hooks)
   - [Object hooks](#object-hooks)
   - [Class hooks](#class-hooks)
@@ -78,7 +82,7 @@ Which will make a `hooks` global variable available.
 
 ## JavaScript
 
-The following example makes sure that the `name` is valid and logs information about a function call:
+The following example logs information about a function call:
 
 ```js
 const { hooks } = require('@feathersjs/hooks');
@@ -93,23 +97,11 @@ const logRuntime = async (context, next) => {
   console.log(`Function '${context.method || '[no name]'}' returned '${context.result}' after ${end - start}ms`);
 }
 
-const validateName = async (context, next) => {
-  const [ name ] = context.arguments;
-
-  if (!name || name.trim() === '') {
-    throw new Error('Name is not valid');
-  }
-
-  // Always has to be called
-  await next();
-}
-
 // Hooks can be used with a function like this:
 const sayHello = hooks(async name => {
   return `Hello ${name}!`;
 }, [
-  logRuntime,
-  validateName
+  logRuntime
 ]);
 
 // And on an object or class like this
@@ -121,8 +113,7 @@ class Hello {
 
 hooks(Hello, {
   sayHi: [
-    logRuntime,
-    validateName
+    logRuntime
   ]
 });
 
@@ -161,21 +152,9 @@ const logRuntime = async (context: HookContext, next: NextFunction) => {
   console.log(`Function '${context.method || '[no name]'}' returned '${context.result}' after ${end - start}ms`);
 }
 
-const validateName = async (context: HookContext, next: NextFunction) => {
-  const [ name ] = context.arguments;
-
-  if (!name || name.trim() === '') {
-    throw new Error('Name is not valid');
-  }
-
-  // Always has to be called
-  await next();
-}
-
 class Hello {
   @hooks([
-    logRuntime,
-    validateName
+    logRuntime
   ])
   async sayHi (name: string) {
     return `Hi ${name}`;
@@ -253,31 +232,6 @@ hook2 after
 hook1 after
 ```
 
-## Options
-
-Instead an array of middleware, an object with the following options can be passed:
-
-- `middleware` - The array of middleware functions
-- `context` (*optional*) - A function `(self: any, fn: any, args: any[], context: HookContext) => HookContext` that updates the existing `context` with information about the function call like the `this` reference (`self`), the wrapped function (`fn`) and the function call arguments (`args`). Usually used for [named parameters](#using-named-parameters).
-- `collect` (*optional*) - A function `(self: any, fn: any, args: any[]) => Middleware[]` that returns all middleware functions for a function call. Usually does not need to be customized.
-
-```js
-const { hooks, withParams } = require('@feathersjs/hooks');
-
-const sayHelloWithHooks = hooks(sayHello, {
-  middleware: [
-    hook1,
-    hook2,
-    hook3
-  ],
-  context: withParams('name')
-});
-
-(async () => {
-  await sayHelloWithHooks('David');
-})();
-```
-
 ## Hook Context
 
 The hook `context` in a [middleware function](#middleware) is an object that contains information about the function call. 
@@ -318,25 +272,32 @@ const wrappedSayHello = hooks(sayHello, [
 
 ### Using named parameters
 
-It is also possible to turn the arguments into named parameters. In the above example we probably want to have `context.firstName` and `context.lastName` available. To do this, the [`context` option](#options) can be used with `withParams` like this:
+It is also possible to turn the arguments into named parameters. In the above example we probably want to have `context.firstName` and `context.lastName` available. To do this, the [`context` option](#options) can be initialized like this:
 
 ```js
-const { hooks, withParams } = require('@feathersjs/hooks');
+const { hooks, middleware } = require('@feathersjs/hooks');
 
 const sayHello = async (firstName, lastName) => {
   return `Hello ${firstName} ${lastName}!`;
 };
 
-const wrappedSayHello = hooks(sayHello, {
-  context: withParams('firstName', 'lastName'),
-  middleware: [
-    async (context, next) => {
-      // Now we can modify `context.lastName` instead
-      context.lastName = 'X';
-      await next();
-    }
-  ]
-});
+const manager = middleware([
+  async (context, next) => {
+    // Now we can modify `context.lastName` instead
+    context.lastName = 'X';
+    await next();
+  }
+]).params('firstName', 'lastName');
+const wrappedSayHello = hooks(sayHello, manager);
+
+// Or all together
+const wrappedSayHello = hooks(sayHello, middleware([
+  async (context, next) => {
+    // Now we can modify `context.lastName` instead
+    context.lastName = 'X';
+    await next();
+  }
+]).params('firstName', 'lastName'));
 
 (async () => {
   console.log(await wrappedSayHello('David', 'L')); // Hello David X
@@ -345,31 +306,10 @@ const wrappedSayHello = hooks(sayHello, {
 
 > __Note:__ When using named parameters, `context.arguments` is read only.
 
-`withParams` also allows to define default values with an array (`[name, defaultValue]`) for each parameter, like this:
+### Default values
 
-```js
-const { hooks, withParams } = require('@feathersjs/hooks');
 
-const sayHello = async (firstName, lastName, params = {}) => {
-  return `Hello ${firstName} ${lastName}!`;
-};
-
-const wrappedSayHello = hooks(sayHello, {
-  context: withParams('firstName', 'lastName', ['params', {}]),
-  middleware: [
-    async (context, next) => {
-      // `context.params` is an empty object here
-      await next();
-    }
-  ]
-});
-
-(async () => {
-  console.log(await wrappedSayHello('David', 'L')); // Hello David X
-})();
-```
-
-> __Note:__ Even if your original function contains a default value, it is important to specify it with `withParams` because the middleware runs before and the value will be `undefined` without default value in `withParams`.
+> __Note:__ Even if your original function contains a default value, it is important to specify it because the middleware runs before and the value will be `undefined` without a default value.
 
 ### Modifying the result
 
@@ -410,7 +350,7 @@ const o = hooks({
 
 ### Customizing and returning the context
 
-To add additional data to the context an instance of `HookContext` can be passed as the last argument of a hook-enabled function call. In that case, the up to date context object with all the information (like `context.result`) will be returned:
+To add additional data to the context an instance of a hook context created via `fn.createContext(data)` can be passed as the last argument of a hook-enabled function call. In that case, the up to date context object with all the information (like `context.result`) will be returned:
 
 ```js
 const { hooks, HookContext } = require('@feathersjs/hooks');
@@ -426,7 +366,7 @@ const sayHello = hooks(async message => {
   return `Hello ${message}!`;
 }, [ customContextData ]);
 
-const customContext = new HookContext({
+const customContext = sayHello.createContext({
   message: 'Hi from context'
 });
 
@@ -436,6 +376,62 @@ const customContext = new HookContext({
   console.log(finalContext);
 })();
 ```
+
+## Options
+
+Instead an array of middleware, a chainable middleware manager that allows to set additional options can be passed like this:
+
+```js
+const { hooks, middleware } = require('@feathersjs/hooks');
+
+// Initialize middleware manager with name parameter 'name'
+const manager = middleware([
+  hook1,
+  hook2,
+  hook3
+]);
+const sayHelloWithHooks = hooks(sayHello, manager);
+
+// Or all together
+const sayHelloWithHooks = hooks(sayHello, middleware([
+  hook1,
+  hook2,
+  hook3
+]));
+
+(async () => {
+  await sayHelloWithHooks('David');
+})();
+```
+
+### params(...names)
+
+Inititalizes a list of named parameters.
+
+```js
+const sayHelloWithHooks = hooks(sayHello, middleware([
+  hook1,
+  hook2,
+  hook3
+]).params('name'));
+```
+
+### props
+
+Initializes properties on the `context`
+
+```js
+// Or all together
+const sayHelloWithHooks = hooks(sayHello, middleware([
+  hook1,
+  hook2,
+  hook3
+]).params('name').props({
+  customProperty: true
+}));
+```
+
+### defaults
 
 ## Function hooks
 
@@ -476,11 +472,11 @@ const wrappedSayHello = hooks(sayHello, {
 `hooks(obj, middlewareMap)` takes an object and wraps the functions indicated in `middlewareMap`. It will modify the existing Object `obj`:
 
 ```js
-const { hooks, withParams } = require('@feathersjs/hooks');
+const { hooks, middleware } = require('@feathersjs/hooks');
 
 const o = {
-  async sayHi (name) {
-    return `Hi ${name}!`;
+  async sayHi (name, quote) {
+    return `Hi ${name} ${quote}`;
   }
 
   async sayHello (name) {
@@ -493,16 +489,10 @@ hooks(o, {
   sayHi: [ logRuntime ]
 });
 
-// With `context` and named parameters
+// With additional options
 hooks(o, {
-  sayHello: {
-    middleware: [ logRuntime ],
-    context: withParams('name')
-  },
-  sayHi: {
-    middleware: [ logRuntime ],
-    context: withParams('name')
-  }
+  sayHello: middleware([ logRuntime ]).params('name', 'quote'),
+  sayHi: middleware([ logRuntime ]).params('name')
 });
 ```
 
@@ -664,10 +654,7 @@ class HappyHelloSayer extends HelloSayer {
 
   const findUser = hooks(async query => {
     return collection.find(query);
-  }, {
-    context: withParams('query'),
-    middleware: [ updateQuery ]
-  });
+  }, middleware([ updateQuery ]).params('query'));
   ```
 
 # More Examples
@@ -725,7 +712,7 @@ const checkPermission = name => async (context, next) => {
 
 const deleteInvoice = hooks(async (id, user) => {
   return collection.delete(id);
-}, [ checkPermission('admin') ], withParams('id', 'user'));
+}, middleware([ checkPermission('admin') ]).params('id', 'user'));
 ```
 
 ## Cleaning up GraphQL resolvers
@@ -750,13 +737,10 @@ const resolvers = {
       return context.db.loadHumanByID(args.id).then(
         userData => new Human(userData)
       )
-    }, {
-      context: withParams('obj', 'args', 'context', 'info'),
-      middleware: [
-        cache(),
-        checkPermission('admin')
-      ]
-    })
+    }, middleware([
+      cache(),
+      checkPermission('admin')
+    ]).params('obj', 'args', 'context', 'info'))
   }
 }
 ```

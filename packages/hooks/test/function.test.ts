@@ -5,7 +5,8 @@ import {
   getManager,
   HookContext,
   NextFunction,
-  setMiddleware
+  setMiddleware,
+  functionHooks
 } from '../src';
 
 describe('functionHooks', () => {
@@ -14,11 +15,15 @@ describe('functionHooks', () => {
   };
 
   it('returns a new function, registers hooks', () => {
-    const fn = hooks(hello, middleware([]));
+    const fn = hooks(hello, []);
 
     assert.notDeepEqual(fn, hello);
     assert.ok(getManager(fn) !== null);
   });
+
+  it('throws an error with non function', () => {
+    assert.throws(() => functionHooks({}, middleware([])));
+  })
 
   it('can override arguments, has context', async () => {
     const addYou = async (ctx: HookContext, next: NextFunction) => {
