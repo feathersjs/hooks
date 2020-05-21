@@ -1,6 +1,6 @@
 <h1>@feathersjs/hooks</h1>
 
-[![CI GitHub action](https://github.com/feathersjs/hooks/workflows/Node%20CI/badge.svg)](https://github.com/feathersjs/hooks/actions?query=workflow%3A%22Node+CI%22) [![Greenkeeper badge](https://badges.greenkeeper.io/feathersjs/hooks.svg)](https://greenkeeper.io/)
+[![CI GitHub action](https://github.com/feathersjs/hooks/workflows/Node%20CI/badge.svg)](https://github.com/feathersjs/hooks/actions?query=workflow%3A%22Node+CI%22)
 
 `@feathersjs/hooks` brings middleware to any async JavaScript or TypeScript function. It allows to create composable and reusable workflows that can add
 
@@ -435,30 +435,21 @@ const sayHelloWithHooks = hooks(sayHello, middleware([
 
 ## Function hooks
 
-`hooks(fn, middleware[]|settings)` returns a new function that wraps `fn` with `middleware`. The following example shows how a custom [`context` option](#options) could be used:
+`hooks(fn, middleware[]|settings)` returns a new function that wraps `fn` with `middleware`
 
 ```js
-const { hooks } = require('@feathersjs/hooks');
+const { hooks, middleware } = require('@feathersjs/hooks');
 
 const sayHello = async name => {
   return `Hello ${name}!`;
 };
 
-const wrappedSayHello = hooks(sayHello, {
-  middleware: [
-    async (context, next) => {
-      console.log(context.someProperty);
-      await next();
-    }
-  ],
-  context (self, fn, args, context) {
-    context.self = self;
-    context.arguments = args;
-    context.someProperty = 'Set from updateContext';
-
-    return context;
+const wrappedSayHello = hooks(sayHello, middleware([
+  async (context, next) => {
+    console.log(context.someProperty);
+    await next();
   }
-});
+]).params('name'));
 
 (async () => {
   console.log(await wrappedSayHello('David'));
