@@ -2,8 +2,8 @@ import { Middleware } from './compose';
 import { functionHooks } from './function';
 import { setMiddleware, convertOptions, HookOptions } from './base';
 
-export interface HookMap {
-  [key: string]: HookOptions;
+export type HookMap<O = any> = {
+  [L in keyof O]?: HookOptions;
 }
 
 export function objectHooks (_obj: any, hooks: HookMap|Middleware[]) {
