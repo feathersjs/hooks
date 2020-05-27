@@ -1,9 +1,20 @@
 import { strict as assert } from 'assert';
 import { hooks, middleware, HookContext, NextFunction } from '../src';
 
+interface HookableObject {
+  test: string;
+  sayHi (name: string): Promise<string>;
+  addOne (number: number): Promise<number>;
+}
+
+interface Dummy {
+  sayHi (name: string): Promise<string>;
+  addOne (number: number): Promise<number>;
+}
+
 describe('objectHooks', () => {
-  let obj: any;
-  let DummyClass: any;
+  let obj: HookableObject;
+  let DummyClass: new () => Dummy;
 
   beforeEach(() => {
     obj = {
@@ -18,7 +29,7 @@ describe('objectHooks', () => {
       }
     };
 
-    DummyClass = class DummyClass {
+    DummyClass = class DummyClass implements Dummy {
       async sayHi (name: string) {
         return `Hi ${name}`;
       }
@@ -33,7 +44,7 @@ describe('objectHooks', () => {
     const hookedObj = hooks(obj, {
       sayHi: middleware([async (ctx: HookContext, next: NextFunction) => {
         assert.equal(ctx.method, 'sayHi');
-        assert.deepEqual(ctx, new obj.sayHi.Context({
+        assert.deepEqual(ctx, new (obj.sayHi as any).Context({
           arguments: [ 'David' ],
           method: 'sayHi',
           self: obj
@@ -58,7 +69,7 @@ describe('objectHooks', () => {
   it('hooks object and allows to customize context for method', async () => {
     const hookedObj = hooks(obj, {
       sayHi: middleware([async (ctx: HookContext, next: NextFunction) => {
-        assert.deepStrictEqual(ctx, new obj.sayHi.Context({
+        assert.deepStrictEqual(ctx, new (obj.sayHi as any).Context({
           arguments: ['David'],
           method: 'sayHi',
           name: 'David',
@@ -148,7 +159,7 @@ describe('objectHooks', () => {
   it('works with inheritance', async () => {
     hooks(DummyClass, {
       sayHi: middleware([async (ctx: HookContext, next: NextFunction) => {
-        assert.deepStrictEqual(ctx, new OtherDummy.prototype.sayHi.Context({
+        assert.deepStrictEqual(ctx, new (OtherDummy.prototype.sayHi as any).Context({
           arguments: [ 'David' ],
           method: 'sayHi',
           self: instance

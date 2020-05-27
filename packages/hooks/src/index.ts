@@ -16,22 +16,44 @@ export interface WrapperAddon<F> {
 
 export type WrappedFunction<F, T> = F&((...rest: any[]) => Promise<T>|Promise<HookContext>)&WrapperAddon<F>;
 
-export function middleware (mw: Middleware[]) {
+/**
+ * Initializes a hook settings object with the given middleware.
+ * @param mw The list of middleware
+ */
+export function middleware (mw: Middleware[] = []) {
   const manager = new HookManager();
 
   return manager.middleware(mw);
 }
 
-// hooks(fn, hookOptions)
+/**
+ * Returns a new function that wraps an existing async function
+ * with hooks.
+ * 
+ * @param fn The async function to add hooks to.
+ * @param manager An array of middleware or hook settings
+ * (`middleware([]).params()` etc.)
+ */
 export function hooks<F, T = any> (
   fn: F, manager: HookManager
 ): WrappedFunction<F, T>;
-// hooks(object, hookMap)
-export function hooks<O> (obj: O, hookMap: HookMap|Middleware[]): O;
-// @hooks(hookOptions)
+
+/**
+ * Add hooks to one or more methods on an object or class.
+ * @param obj The object to add hooks to
+ * @param hookMap A map of middleware settings where the
+ * key is the method name.
+ */
+export function hooks<O> (obj: O|(new (...args: any[]) => O), hookMap: HookMap<O>|Middleware[]): O;
+
+/**
+ * Decorate a class method with hooks.
+ * @param _manager The hooks settings
+ */
 export function hooks<T = any> (
   _manager?: HookOptions
 ): any;
+
 // Fallthrough to actual implementation
 export function hooks (...args: any[]) {
   const [ target, _hooks ] = args;

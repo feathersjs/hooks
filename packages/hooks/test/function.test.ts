@@ -179,24 +179,6 @@ describe('functionHooks', () => {
     assert.equal(await fn('Dave'), 'Hello Changed');
   });
 
-  // it('creates context with default params', async () => {
-  //   const fn = hooks(hello, {
-  //     middleware: [
-  //       async (ctx, next) => {
-  //         assert.equal(ctx.name, 'Dave');
-  //         assert.deepEqual(ctx.params, {});
-
-  //         ctx.name = 'Changed';
-
-  //         await next();
-  //       }
-  //     ],
-  //     context: withParams('name', ['params', {}])
-  //   });
-
-  //   assert.equal(await fn('Dave'), 'Hello Changed');
-  // });
-
   it('assigns props to context', async () => {
     const fn = hooks(hello, middleware([
       async (ctx, next) => {
@@ -282,38 +264,6 @@ describe('functionHooks', () => {
     assert.equal(called, 1);
   });
 
-  // it('is chainable with .params on function', async () => {
-  //   const hook = async function (this: any, context: HookContext, next: NextFunction) {
-  //     await next();
-  //     context.result += '!';
-  //   };
-  //   const exclamation = hooks(hello, middleware([hook]).params(['name', 'Dave']));
-
-  //   const result = await exclamation();
-
-  //   assert.equal(result, 'Hello Dave!');
-  // });
-
-  // it('is chainable with .params on object', async () => {
-  //   const hook = async function (this: any, context: HookContext, next: NextFunction) {
-  //     await next();
-  //     context.result += '!';
-  //   };
-  //   const obj = {
-  //     sayHi (name: any) {
-  //       return `Hi ${name}`;
-  //     }
-  //   };
-
-  //   hooks(obj, {
-  //     sayHi: hooks([hook]).params('name')
-  //   });
-
-  //   const result = await obj.sayHi('Dave');
-
-  //   assert.equal(result, 'Hi Dave!');
-  // });
-
   it('conserves method properties', async () => {
     const TEST = Symbol('test');
     const hello = (name: any) => `Hi ${name}`;
@@ -358,4 +308,54 @@ describe('functionHooks', () => {
 
     assert.deepEqual(Object.keys(resultContext), ['message', 'name', 'arguments', 'result']);
   });
+
+  // it('creates context with default params', async () => {
+  //   const fn = hooks(hello, {
+  //     middleware: [
+  //       async (ctx, next) => {
+  //         assert.equal(ctx.name, 'Dave');
+  //         assert.deepEqual(ctx.params, {});
+
+  //         ctx.name = 'Changed';
+
+  //         await next();
+  //       }
+  //     ],
+  //     context: withParams('name', ['params', {}])
+  //   });
+
+  //   assert.equal(await fn('Dave'), 'Hello Changed');
+  // });
+
+  // it('is chainable with .params on function', async () => {
+  //   const hook = async function (this: any, context: HookContext, next: NextFunction) {
+  //     await next();
+  //     context.result += '!';
+  //   };
+  //   const exclamation = hooks(hello, middleware([hook]).params(['name', 'Dave']));
+
+  //   const result = await exclamation();
+
+  //   assert.equal(result, 'Hello Dave!');
+  // });
+
+  // it('is chainable with .params on object', async () => {
+  //   const hook = async function (this: any, context: HookContext, next: NextFunction) {
+  //     await next();
+  //     context.result += '!';
+  //   };
+  //   const obj = {
+  //     sayHi (name: any) {
+  //       return `Hi ${name}`;
+  //     }
+  //   };
+
+  //   hooks(obj, {
+  //     sayHi: hooks([hook]).params('name')
+  //   });
+
+  //   const result = await obj.sayHi('Dave');
+
+  //   assert.equal(result, 'Hi Dave!');
+  // });
 });
