@@ -29,7 +29,7 @@ export function middleware (mw: Middleware[] = []) {
 /**
  * Returns a new function that wraps an existing async function
  * with hooks.
- * 
+ *
  * @param fn The async function to add hooks to.
  * @param manager An array of middleware or hook settings
  * (`middleware([]).params()` etc.)

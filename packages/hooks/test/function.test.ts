@@ -10,7 +10,7 @@ import {
 } from '../src';
 
 describe('functionHooks', () => {
-  const hello = async (name: string, _params: any = {}) => {
+  const hello = async (name?: string, _params: any = {}) => {
     return `Hello ${name}`;
   };
 
@@ -309,53 +309,30 @@ describe('functionHooks', () => {
     assert.deepEqual(Object.keys(resultContext), ['message', 'name', 'arguments', 'result']);
   });
 
-  // it('creates context with default params', async () => {
-  //   const fn = hooks(hello, {
-  //     middleware: [
-  //       async (ctx, next) => {
-  //         assert.equal(ctx.name, 'Dave');
-  //         assert.deepEqual(ctx.params, {});
+  it('same params and props throw an error', async () => {
+    const hello = async (name?: string) => {
+      return `Hello ${name}`;
+    };
+    assert.throws(() => hooks(hello, middleware([]).params('name').props({ name: 'David' })), {
+      message: `Hooks can not have a property and param named 'name'. Use .defaults instead.`
+    });
+  });
 
-  //         ctx.name = 'Changed';
+  it('creates context with default params', async () => {
+    const fn = hooks(hello, middleware([
+      async (ctx, next) => {
+        assert.deepEqual(ctx.params, {});
 
-  //         await next();
-  //       }
-  //     ],
-  //     context: withParams('name', ['params', {}])
-  //   });
+        await next();
+      }]).params('name', 'params').defaults(() => {
+        return {
+          name: 'Bertho',
+          params: {}
+        }
+      })
+    );
 
-  //   assert.equal(await fn('Dave'), 'Hello Changed');
-  // });
-
-  // it('is chainable with .params on function', async () => {
-  //   const hook = async function (this: any, context: HookContext, next: NextFunction) {
-  //     await next();
-  //     context.result += '!';
-  //   };
-  //   const exclamation = hooks(hello, middleware([hook]).params(['name', 'Dave']));
-
-  //   const result = await exclamation();
-
-  //   assert.equal(result, 'Hello Dave!');
-  // });
-
-  // it('is chainable with .params on object', async () => {
-  //   const hook = async function (this: any, context: HookContext, next: NextFunction) {
-  //     await next();
-  //     context.result += '!';
-  //   };
-  //   const obj = {
-  //     sayHi (name: any) {
-  //       return `Hi ${name}`;
-  //     }
-  //   };
-
-  //   hooks(obj, {
-  //     sayHi: hooks([hook]).params('name')
-  //   });
-
-  //   const result = await obj.sayHi('Dave');
-
-  //   assert.equal(result, 'Hi Dave!');
-  // });
+    assert.equal(await fn('Dave'), 'Hello Dave');
+    assert.equal(await fn(), 'Hello Bertho');
+  });
 });

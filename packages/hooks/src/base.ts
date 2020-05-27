@@ -22,12 +22,14 @@ export class HookContext<T = any, C = any> {
 
 export type HookContextConstructor = new (data?: { [key: string]: any }) => HookContext;
 
+export type HookDefaultsInitializer = (self?: any, args?: any[], context?: HookContext) => HookContextData;
+
 export class HookManager {
   _parent?: this|null = null;
   _params: string[] = [];
   _middleware: Middleware[] = [];
   _props: HookContextData = {};
-  _defaults: HookContextData|(() => HookContextData) = {};
+  _defaults: HookDefaultsInitializer;
 
   parent (parent: this) {
     this._parent = parent;
@@ -77,10 +79,17 @@ export class HookManager {
     return previous.concat(this._params);
   }
 
-  defaults (defaults: HookContextData|(() => HookContextData)) {
+  defaults (defaults: HookDefaultsInitializer) {
     this._defaults = defaults;
 
     return this;
+  }
+
+  getDefaults (self: any, args: any[], context: HookContext): HookContextData {
+    const previous = this._parent ? this._parent.getDefaults(self, args, context) : {};
+    const defaults = typeof this._defaults === 'function' ? this._defaults(self, args, context) : {};
+
+    return Object.assign({}, previous, defaults);
   }
 
   getContextClass (Base: HookContextConstructor = HookContext): HookContextConstructor {
@@ -95,10 +104,14 @@ export class HookManager {
     const props = this.getProps();
 
     params.forEach((name, index) => {
+      if (props[name]) {
+        throw new Error(`Hooks can not have a property and param named '${name}'. Use .defaults instead.`);
+      }
+
       Object.defineProperty(ContextClass.prototype, name, {
         enumerable: true,
         get () {
-          return this.arguments[index];
+          return this?.arguments[index];
         },
         set (value: any) {
           this.arguments[index] = value;
@@ -113,12 +126,19 @@ export class HookManager {
 
   initializeContext (self: any, args: any[], context: HookContext): HookContext {
     const ctx = this._parent ? this._parent.initializeContext(self, args, context) : context;
+    const defaults = this.getDefaults(self, args, ctx);
 
     if (self) {
       ctx.self = self;
     }
 
     ctx.arguments = args;
+
+    for (const name of Object.keys(defaults)) {
+      if (ctx[name] === undefined) {
+        ctx[name] = defaults[name];
+      }
+    }
 
     return ctx;
   }
