@@ -35,8 +35,8 @@ To a function or class without having to change its original code while also kee
     - [Customizing and returning the context](#customizing-and-returning-the-context)
   - [Options](#options)
     - [params(...names)](#paramsnames)
-    - [props](#props)
-    - [defaults](#defaults)
+    - [props(properties)](#propsproperties)
+    - [defaults(callback)](#defaultscallback)
   - [Function hooks](#function-hooks)
   - [Object hooks](#object-hooks)
   - [Class hooks](#class-hooks)
@@ -416,7 +416,7 @@ const sayHelloWithHooks = hooks(sayHello, middleware([
 ]).params('name'));
 ```
 
-### props
+### props(properties)
 
 Initializes properties on the `context`
 
@@ -431,7 +431,21 @@ const sayHelloWithHooks = hooks(sayHello, middleware([
 }));
 ```
 
-### defaults
+> __Note:__ `.props` can not contain any of the field names defined in `.params`.
+
+### defaults(callback)
+
+Calls a `callback(self, arguments, context)` that returns default values which will be set if the property on the hook context is `undefined`. Applies to both, `params` and other properties.
+
+```js
+const sayHello = async (name?: string) => `Hello ${name}`;
+
+const sayHelloWithHooks = hooks(sayHello, middleware([]).params('name').defaults(() => {
+  return {
+    name: 'Unknown human'
+  }
+});
+```
 
 ## Function hooks
 
