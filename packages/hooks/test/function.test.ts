@@ -6,7 +6,10 @@ import {
   HookContext,
   NextFunction,
   setMiddleware,
-  functionHooks
+  functionHooks,
+  contextParams,
+  contextProperties,
+  contextDefaults
 } from '../src';
 
 describe('functionHooks', () => {
@@ -131,34 +134,42 @@ describe('functionHooks', () => {
   });
 
   it('wraps an existing hooked function properly', async () => {
-    const first = hooks(hello, middleware([
-      async (ctx, next) => {
-        await next();
+    const one = async (ctx: HookContext, next: NextFunction) => {
+      await next();
 
-        ctx.result += ' First';
-      }
-    ]));
-    const second = hooks(first, middleware([
-      async (ctx, next) => {
-        await next();
+      ctx.result += ' One';
+    };
+    const two = async (ctx: HookContext, next: NextFunction) => {
+      await next();
 
-        ctx.result += ' Second';
-      }
-    ]));
+      ctx.result += ' Two';
+    };
+    const three = async (ctx: HookContext, next: NextFunction) => {
+      await next();
+
+      ctx.result += ' Three';
+    };
+    const first = hooks(hello, middleware([ one, two ]));
+    const second = hooks(first, middleware([ three ]));
+
+    assert.deepEqual(getManager(second).getMiddleware(), [ one, two, three ]);
 
     const result = await second('Dave');
 
-    assert.strictEqual(result, 'Hello Dave First Second');
+    assert.strictEqual(result, 'Hello Dave Three Two One');
   });
 
   it('chains context initializers', async () => {
-    const first = hooks(hello, middleware([]).params('name'));
+    const first = hooks(hello, middleware([
+      contextProperties({ testing: ' test value' })
+    ]));
     const second = hooks(first, middleware([
+      contextParams('name'),
       async (ctx, next) => {
         ctx.name += ctx.testing;
         await next();
       }
-    ]).props({ testing: ' test value' }));
+    ]));
 
     const result = await second('Dave');
 
@@ -167,6 +178,7 @@ describe('functionHooks', () => {
 
   it('creates context with params and converts to arguments', async () => {
     const fn = hooks(hello, middleware([
+      contextParams('name'),
       async (ctx, next) => {
         assert.equal(ctx.name, 'Dave');
 
@@ -174,13 +186,15 @@ describe('functionHooks', () => {
 
         await next();
       }
-    ]).params('name'));
+    ]));
 
     assert.equal(await fn('Dave'), 'Hello Changed');
   });
 
   it('assigns props to context', async () => {
     const fn = hooks(hello, middleware([
+      contextParams('name'),
+      contextProperties({ dev: true }),
       async (ctx, next) => {
         assert.equal(ctx.name, 'Dave');
         assert.equal(ctx.dev, true);
@@ -189,7 +203,7 @@ describe('functionHooks', () => {
 
         await next();
       }
-    ]).params('name').props({ dev: true }));
+    ]));
 
     assert.equal(await fn('Dave'), 'Hello Changed');
   });
@@ -204,7 +218,10 @@ describe('functionHooks', () => {
       await next();
     };
 
-    const fn = hooks(hello, middleware([ modifyArgs ]).params('name'));
+    const fn = hooks(hello, middleware([
+      contextParams('name'),
+      modifyArgs
+    ]));
 
     const customContext = fn.createContext();
     const resultContext = await fn('Daffl', {}, customContext);
@@ -220,6 +237,7 @@ describe('functionHooks', () => {
   it('can take and return an existing HookContext', async () => {
     const message = 'Custom message';
     const fn = hooks(hello, middleware([
+      contextParams('name'),
       async (ctx, next) => {
         assert.equal(ctx.name, 'Dave');
         assert.equal(ctx.message, message);
@@ -227,7 +245,7 @@ describe('functionHooks', () => {
         ctx.name = 'Changed';
         await next();
       }
-    ]).params('name'));
+    ]));
 
     const customContext = fn.createContext({ message });
     const resultContext: HookContext = await fn('Dave', {}, customContext);
@@ -300,36 +318,20 @@ describe('functionHooks', () => {
     assert.equal((sayHi as any)[TEST], (hello as any)[TEST]);
   });
 
-  it('context has own properties', async () => {
-    const fn = hooks(hello, middleware([]).params('name'));
-
-    const customContext = fn.createContext({ message: 'Hi !' });
-    const resultContext: HookContext = await fn('Dave', {}, customContext);
-
-    assert.deepEqual(Object.keys(resultContext), ['message', 'name', 'arguments', 'result']);
-  });
-
-  it('same params and props throw an error', async () => {
-    const hello = async (name?: string) => {
-      return `Hello ${name}`;
-    };
-    assert.throws(() => hooks(hello, middleware([]).params('name').props({ name: 'David' })), {
-      message: `Hooks can not have a property and param named 'name'. Use .defaults instead.`
-    });
-  });
-
   it('creates context with default params', async () => {
     const fn = hooks(hello, middleware([
-      async (ctx, next) => {
-        assert.deepEqual(ctx.params, {});
-
-        await next();
-      }]).params('name', 'params').defaults(() => {
+      contextParams('name', 'params'),
+      contextDefaults(() => {
         return {
           name: 'Bertho',
           params: {}
         }
-      })
+      }),
+      async (ctx, next) => {
+        assert.deepEqual(ctx.params, {});
+
+        await next();
+      }])
     );
 
     assert.equal(await fn('Dave'), 'Hello Dave');

@@ -7,6 +7,7 @@ import { HookManager, HookContextData, HookContext, HookContextConstructor, Hook
 export * from './function';
 export * from './compose';
 export * from './base';
+export * from './hooks';
 
 export interface WrapperAddon<F> {
   original: F;

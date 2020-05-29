@@ -1,5 +1,12 @@
 import { strict as assert } from 'assert';
-import { hooks, HookContext, NextFunction, middleware } from '../src/';
+import {
+  hooks,
+  HookContext,
+  NextFunction,
+  middleware,
+  contextParams,
+  contextProperties
+} from '../src/';
 
 const CYCLES = 100000;
 const getRuntime = async (callback: () => Promise<any>) => {
@@ -44,10 +51,12 @@ describe('hook benchmark', () => {
 
   it('single hook, withParams and props', async () => {
     const hookHello = hooks(hello, middleware([
+      contextParams('name'),
+      contextProperties({ dave: true }),
       async (_ctx: HookContext, next: NextFunction) => {
         await next();
       }
-    ]).params('name').props({ dave: true }));
+    ]));
 
     const runtime = await getRuntime(() => hookHello('Dave'));
 

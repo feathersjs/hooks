@@ -1,5 +1,5 @@
 import { strict as assert } from 'assert';
-import { hooks, middleware, HookContext, NextFunction } from '../src';
+import { hooks, middleware, HookContext, NextFunction, contextParams } from '../src';
 
 interface HookableObject {
   test: string;
@@ -52,20 +52,23 @@ describe('objectHooks', () => {
 
   it('hooks object and allows to customize context for method', async () => {
     const hookedObj = hooks(obj, {
-      sayHi: middleware([async (ctx: HookContext, next: NextFunction) => {
-        assert.deepStrictEqual(ctx, new (obj.sayHi as any).Context({
-          arguments: ['David'],
-          method: 'sayHi',
-          name: 'David',
-          self: obj
-        }));
+      sayHi: middleware([
+        contextParams('name'),
+        async (ctx: HookContext, next: NextFunction) => {
+          assert.deepStrictEqual(ctx, new (obj.sayHi as any).Context({
+            arguments: ['David'],
+            method: 'sayHi',
+            name: 'David',
+            self: obj
+          }));
 
-        ctx.name = 'Dave';
+          ctx.name = 'Dave';
 
-        await next();
+          await next();
 
-        ctx.result += '?';
-      }]).params('name'),
+          ctx.result += '?';
+        }
+      ]),
 
       addOne: middleware([async (ctx: HookContext, next: NextFunction) => {
         ctx.arguments[0] += 1;
@@ -96,7 +99,7 @@ describe('objectHooks', () => {
       }])
     });
 
-    assert.strictEqual(await obj.sayHi('David'), 'Hi David?!');
+    assert.strictEqual(await obj.sayHi('David'), 'Hi David!?');
   });
 
   it('throws an error when hooking invalid method', async () => {
