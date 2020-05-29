@@ -384,7 +384,7 @@ Instead an array of middleware, a chainable middleware manager that allows to se
 ```js
 const { hooks, middleware } = require('@feathersjs/hooks');
 
-// Initialize middleware manager with name parameter 'name'
+// Initialize middleware manager
 const manager = middleware([
   hook1,
   hook2,
@@ -421,7 +421,6 @@ const sayHelloWithHooks = hooks(sayHello, middleware([
 Initializes properties on the `context`
 
 ```js
-// Or all together
 const sayHelloWithHooks = hooks(sayHello, middleware([
   hook1,
   hook2,
