@@ -1,5 +1,5 @@
 import { strict as assert } from 'assert';
-import { hooks, HookContext, NextFunction, contextParams } from '../src';
+import { hooks, HookContext, NextFunction, context } from '../src';
 
 describe('hookDecorator', () => {
   it('hook decorator on method and classes with inheritance', async () => {
@@ -25,7 +25,7 @@ describe('hookDecorator', () => {
     }])
     class DummyClass extends TopLevel {
       @hooks([
-        contextParams('name'),
+        context.params('name'),
         async (ctx: HookContext, next: NextFunction) => {
           assert.equal(ctx.method, 'sayHi');
           assert.deepEqual(ctx.arguments, [expectedName]);

@@ -4,10 +4,10 @@ import { objectHooks, HookMap } from './object';
 import { hookDecorator } from './decorator';
 import { HookManager, HookContextData, HookContext, HookContextConstructor, HookOptions } from './base';
 
+export * as context from './context';
 export * from './function';
 export * from './compose';
 export * from './base';
-export * from './hooks';
 
 export interface WrapperAddon<F> {
   original: F;

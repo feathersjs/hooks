@@ -4,8 +4,7 @@ import {
   HookContext,
   NextFunction,
   middleware,
-  contextParams,
-  contextProperties
+  context
 } from '../src/';
 
 const CYCLES = 100000;
@@ -51,8 +50,8 @@ describe('hook benchmark', () => {
 
   it('single hook, withParams and props', async () => {
     const hookHello = hooks(hello, middleware([
-      contextParams('name'),
-      contextProperties({ dave: true }),
+      context.params('name'),
+      context.properties({ dave: true }),
       async (_ctx: HookContext, next: NextFunction) => {
         await next();
       }

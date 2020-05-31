@@ -4,8 +4,7 @@ import {
   middleware,
   HookContext,
   NextFunction,
-  contextParams,
-  contextProperties
+  context
 } from '../src';
 
 interface Dummy {
@@ -32,7 +31,7 @@ describe('class objectHooks', () => {
   it('hooking object on class adds to the prototype', async () => {
     hooks(DummyClass, {
       sayHi: middleware([
-        contextParams('name'),
+        context.params('name'),
         async (ctx: HookContext, next: NextFunction) => {
           assert.deepStrictEqual(ctx, new DummyClass.prototype.sayHi.Context({
             arguments: ['David'],
@@ -98,7 +97,7 @@ describe('class objectHooks', () => {
   it('works with multiple context updaters', async () => {
     hooks(DummyClass, {
       sayHi: middleware([
-        contextParams('name'),
+        context.params('name'),
         async (ctx, next) => {
           assert.equal(ctx.name, 'Dave');
 
@@ -113,7 +112,7 @@ describe('class objectHooks', () => {
 
     hooks(OtherDummy, {
       sayHi: [
-        contextProperties({ gna: 42 }),
+        context.properties({ gna: 42 }),
         async (ctx, next) => {
           assert.equal(ctx.name, 'Changed');
           assert.equal(ctx.gna, 42);
@@ -127,7 +126,7 @@ describe('class objectHooks', () => {
 
     hooks(instance, {
       sayHi: middleware([
-        contextProperties({ app: 'ok' }),
+        context.properties({ app: 'ok' }),
         async (ctx, next) => {
           assert.equal(ctx.name, 'Changed');
           assert.equal(ctx.gna, 42);

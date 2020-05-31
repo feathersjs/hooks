@@ -1,7 +1,7 @@
 import { Middleware } from './compose';
 import { functionHooks } from './function';
 import { setMiddleware, convertOptions, HookOptions } from './base';
-import { contextProperties } from './hooks';
+import { properties } from './context';
 
 export type HookMap<O = any> = {
   [L in keyof O]?: HookOptions;
@@ -23,7 +23,7 @@ export function objectHooks (_obj: any, hooks: HookMap|Middleware[]) {
 
     const manager = convertOptions(hooks[method]);
 
-    manager._middleware.unshift(contextProperties({ method }));
+    manager._middleware.unshift(properties({ method }));
 
     result[method] = functionHooks(fn, manager);
 
