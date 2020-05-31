@@ -1,5 +1,5 @@
 import { strict as assert } from 'assert';
-import { hooks, middleware, HookContext, NextFunction, context } from '../src';
+import { hooks, middleware, HookContext, NextFunction, setContext } from '../src';
 
 interface HookableObject {
   test: string;
@@ -53,7 +53,7 @@ describe('objectHooks', () => {
   it('hooks object and allows to customize context for method', async () => {
     const hookedObj = hooks(obj, {
       sayHi: middleware([
-        context.params('name'),
+        setContext.params('name'),
         async (ctx: HookContext, next: NextFunction) => {
           assert.deepStrictEqual(ctx, new (obj.sayHi as any).Context({
             arguments: ['David'],

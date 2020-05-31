@@ -7,7 +7,7 @@ import {
   NextFunction,
   setMiddleware,
   functionHooks,
-  context
+  setContext
 } from '../src';
 
 describe('functionHooks', () => {
@@ -159,10 +159,10 @@ describe('functionHooks', () => {
 
   it('chains context initializers', async () => {
     const first = hooks(hello, middleware([
-      context.properties({ testing: ' test value' })
+      setContext.properties({ testing: ' test value' })
     ]));
     const second = hooks(first, middleware([
-      context.params('name'),
+      setContext.params('name'),
       async (ctx, next) => {
         ctx.name += ctx.testing;
         await next();
@@ -176,7 +176,7 @@ describe('functionHooks', () => {
 
   it('creates context with params and converts to arguments', async () => {
     const fn = hooks(hello, middleware([
-      context.params('name'),
+      setContext.params('name'),
       async (ctx, next) => {
         assert.equal(ctx.name, 'Dave');
 
@@ -191,8 +191,8 @@ describe('functionHooks', () => {
 
   it('assigns props to context', async () => {
     const fn = hooks(hello, middleware([
-      context.params('name'),
-      context.properties({ dev: true }),
+      setContext.params('name'),
+      setContext.properties({ dev: true }),
       async (ctx, next) => {
         assert.equal(ctx.name, 'Dave');
         assert.equal(ctx.dev, true);
@@ -217,7 +217,7 @@ describe('functionHooks', () => {
     };
 
     const fn = hooks(hello, middleware([
-      context.params('name'),
+      setContext.params('name'),
       modifyArgs
     ]));
 
@@ -235,7 +235,7 @@ describe('functionHooks', () => {
   it('can take and return an existing HookContext', async () => {
     const message = 'Custom message';
     const fn = hooks(hello, middleware([
-      context.params('name'),
+      setContext.params('name'),
       async (ctx, next) => {
         assert.equal(ctx.name, 'Dave');
         assert.equal(ctx.message, message);
@@ -318,8 +318,8 @@ describe('functionHooks', () => {
 
   it('creates context with default params', async () => {
     const fn = hooks(hello, middleware([
-      context.params('name', 'params'),
-      context.defaults(() => {
+      setContext.params('name', 'params'),
+      setContext.defaults(() => {
         return {
           name: 'Bertho',
           params: {}

@@ -37,9 +37,9 @@ To a function or class without having to change its original code while also kee
     - [Calling the original](#calling-the-original)
     - [Customizing and returning the context](#customizing-and-returning-the-context)
   - [Built in hooks](#built-in-hooks)
-    - [context.params(...names)](#contextparamsnames)
-    - [context.properties(props)](#contextpropertiesprops)
-    - [context.defaults(callback)](#contextdefaultscallback)
+    - [setContext.params(...names)](#setcontextparamsnames)
+    - [setContext.properties(props)](#setcontextpropertiesprops)
+    - [setContext.defaults(callback)](#setcontextdefaultscallback)
 - [Best practises](#best-practises)
 - [More Examples](#more-examples)
   - [Cache](#cache)
@@ -369,7 +369,7 @@ hooks(HelloSayer, {
 Using decorators in TypeScript also respects inheritance:
 
 ```ts
-import { hooks, context, HookContext, NextFunction } from '@feathersjs/hooks';
+import { hooks, setContext, HookContext, NextFunction } from '@feathersjs/hooks';
 
 @hooks([
   async (context: HookContext, next: NextFunction) => {
@@ -379,7 +379,7 @@ import { hooks, context, HookContext, NextFunction } from '@feathersjs/hooks';
 ])
 class HelloSayer {
   @hooks([
-    context.params('name'),
+    setContext.params('name'),
     async (context: HookContext, next: NextFunction) => {
       console.log('Hook on HelloSayer.sayHello');
       await next();
@@ -524,12 +524,12 @@ const customContext = sayHello.createContext({
 
 `@feathersjs/hooks` comes with three built in hooks that can be used to customize the context.
 
-### context.params(...names)
+### setContext.params(...names)
 
-The `context.params(...names)` hook turns the method call arguments into named parameters on the context. The following example allows to read and set `context.firstName` and `context.lastName` in all subsequent hooks:
+The `setContext.params(...names)` hook turns the method call arguments into named parameters on the context. The following example allows to read and set `context.firstName` and `context.lastName` in all subsequent hooks:
 
 ```js
-const { hooks, context } = require('@feathersjs/hooks');
+const { hooks, setContext } = require('@feathersjs/hooks');
 
 const sayHello = async (firstName, lastName) => {
   return `Hello ${firstName} ${lastName}!`;
@@ -537,7 +537,7 @@ const sayHello = async (firstName, lastName) => {
 
 const wrappedSayHello = hooks(sayHello, [
   // Sets `context.firstName` and `context.lastName`
-  context.params('firstName', 'lastName'),
+  setContext.params('firstName', 'lastName'),
   async (context, next) => {
     // Now we can modify `context.lastName` instead
     context.lastName = 'X';
@@ -550,15 +550,15 @@ const wrappedSayHello = hooks(sayHello, [
 })();
 ```
 
-> __Note:__ `context.params` always needs to be registered before any other hook that is reading or writing that property.
+> __Note:__ `setContext.params` always needs to be registered before any other hook that is reading or writing that property.
 
-### context.properties(props)
+### setContext.properties(props)
 
-`context.properties(props)` returns a hook that always sets the given properties on the context:
+`setContext.properties(props)` returns a hook that always sets the given properties on the context:
 
 ```js
 const { version } = require('package.json');
-const { hooks, context } = require('@feathersjs/hooks');
+const { hooks, setContext } = require('@feathersjs/hooks');
 
 const sayHello = async (firstName, lastName) => {
   return `Hello ${firstName} ${lastName}!`;
@@ -566,21 +566,21 @@ const sayHello = async (firstName, lastName) => {
 
 const wrappedSayHello = hooks(sayHello, [
   // Sets `context.version`
-  context.properties({ version })
+  setContext.properties({ version })
 ]);
 ```
 
-### context.defaults(callback)
+### setContext.defaults(callback)
 
-`context.defaults(callback)` returns a hook that calls a `callback(context)` that returns default values which will be set if the property on the context is `undefined`:
+`setContext.defaults(callback)` returns a hook that calls a `callback(context)` that returns default values which will be set if the property on the context is `undefined`:
 
 ```js
-const { hooks, context } = require('@feathersjs/hooks');
+const { hooks, setContext } = require('@feathersjs/hooks');
 const sayHello = async (name?: string) => `Hello ${name}`;
 
 const sayHelloWithHooks = hooks(sayHello, [
-  context.params('name'),
-  context.defaults({
+  setContext.params('name'),
+  setContext.defaults({
     name: 'Unknown human'
   })
 ]);
@@ -663,7 +663,7 @@ await getData('http://url-that-takes-long-to-respond');
 When passing e.g. a `user` object to a function call, hooks allow for a better separation of concerns by handling permissions in a hook:
 
 ```js
-const { hooks, context } = require('@feathersjs/hooks');
+const { hooks, setContext } = require('@feathersjs/hooks');
 
 const checkPermission = name => async (context, next) => {
   if (!context.user.permissions.includes(name)) {
@@ -676,7 +676,7 @@ const checkPermission = name => async (context, next) => {
 const deleteInvoice = hooks(async (id, user) => {
   return collection.delete(id);
 }, [
-  context.params('id', 'user'),
+  setContext.params('id', 'user'),
   checkPermission('admin')
 ]);
 ```
@@ -686,7 +686,7 @@ const deleteInvoice = hooks(async (id, user) => {
 The above examples can both be useful for speeding up and locking down existing [GraphQL resolvers](https://graphql.org/learn/execution/): 
 
 ```js
-const { hooks, context } = require('@feathersjs/hooks');
+const { hooks, setContext } = require('@feathersjs/hooks');
 
 const checkPermission = name => async (ctx, next) => {
   const { context } = ctx;
@@ -704,7 +704,7 @@ const resolvers = {
         userData => new Human(userData)
       )
     }, [
-      context.params('obj', 'args', 'context', 'info'),
+      setContext.params('obj', 'args', 'context', 'info'),
       cache(),
       checkPermission('admin')
     ])
