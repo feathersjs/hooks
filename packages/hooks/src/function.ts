@@ -2,7 +2,25 @@ import { compose, Middleware } from './compose';
 import {
   HookContext, setManager, HookContextData, HookOptions, convertOptions
 } from './base';
-import { getOriginal, copyProperties } from './utils';
+
+export function getOriginal (fn: any): any {
+  return typeof fn.original === 'function' ? getOriginal(fn.original) : fn;
+}
+
+function copyProperties <F> (target: F, original: any) {
+  const originalProps = (Object.keys(original) as any)
+    .concat(Object.getOwnPropertySymbols(original));
+
+  for (const prop of originalProps) {
+    const propDescriptor = Object.getOwnPropertyDescriptor(original, prop);
+
+    if (!target.hasOwnProperty(prop)) {
+      Object.defineProperty(target, prop, propDescriptor);
+    }
+  }
+
+  return target;
+}
 
 /**
  * Returns a new function that is wrapped in the given hooks.

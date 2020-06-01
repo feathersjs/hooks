@@ -25,23 +25,21 @@ To a function or class without having to change its original code while also kee
   - [TypeScript](#typescript)
 - [Documentation](#documentation)
   - [Middleware](#middleware)
-  - [Hook Context](#hook-context)
-    - [Context properties](#context-properties)
-    - [Arguments](#arguments)
-    - [Using named parameters](#using-named-parameters)
-    - [Default values](#default-values)
-    - [Modifying the result](#modifying-the-result)
-    - [Calling the original](#calling-the-original)
-    - [Customizing and returning the context](#customizing-and-returning-the-context)
-  - [Options](#options)
-    - [params(...names)](#paramsnames)
-    - [props(properties)](#propsproperties)
-    - [defaults(callback)](#defaultscallback)
   - [Function hooks](#function-hooks)
   - [Object hooks](#object-hooks)
   - [Class hooks](#class-hooks)
     - [JavaScript](#javascript-1)
     - [TypeScript](#typescript-1)
+  - [Hook Context](#hook-context)
+    - [Context properties](#context-properties)
+    - [Arguments](#arguments)
+    - [Modifying the result](#modifying-the-result)
+    - [Calling the original](#calling-the-original)
+    - [Customizing and returning the context](#customizing-and-returning-the-context)
+  - [Built in hooks](#built-in-hooks)
+    - [setContext.params(...names)](#setcontextparamsnames)
+    - [setContext.properties(props)](#setcontextpropertiesprops)
+    - [setContext.defaults(callback)](#setcontextdefaultscallback)
 - [Best practises](#best-practises)
 - [More Examples](#more-examples)
   - [Cache](#cache)
@@ -232,6 +230,192 @@ hook2 after
 hook1 after
 ```
 
+This order also applies when using hooks on [objects](#object-hooks) and [classes and with inheritance](class-hooks).
+
+## Function hooks
+
+`hooks(fn, middleware[])` returns a new function that wraps `fn` with `middleware`
+
+```js
+const { hooks } = require('@feathersjs/hooks');
+
+const sayHello = async name => {
+  return `Hello ${name}!`;
+};
+
+const wrappedSayHello = hooks(sayHello, [
+  async (context, next) => {
+    console.log(context.arguments);
+    await next();
+  }
+]);
+
+(async () => {
+  console.log(await wrappedSayHello('David'));
+})();
+```
+
+> __Important:__ A wrapped function will _always_ return a Promise even it was not originally `async`.
+
+## Object hooks
+
+`hooks(obj, middlewareMap)` takes an object and wraps the functions indicated in `middlewareMap`. It will modify the existing Object `obj`:
+
+```js
+const { hooks } = require('@feathersjs/hooks');
+
+const o = {
+  async sayHi (name, quote) {
+    return `Hi ${name} ${quote}`;
+  }
+
+  async sayHello (name) {
+    return `Hello ${name}!`;
+  }
+}
+
+hooks(o, {
+  sayHello: [ logRuntime ],
+  sayHi: [ logRuntime ]
+});
+```
+
+Hooks can also be registered at the object level which will run before any specific hooks on a hook enabled function:
+
+```js
+const { hooks } = require('@feathersjs/hooks');
+
+const o = {
+  async sayHi (name) {
+    return `Hi ${name}!`;
+  }
+
+  async sayHello (name) {
+    return `Hello ${name}!`;
+  }
+}
+
+// This hook will run first for every hook enabled method on the object
+hooks(o, [
+  async (context, next) => {
+    console.log('Top level hook');
+    await next();
+  }
+]);
+
+hooks(o, {
+  sayHi: [ logRuntime ]
+});
+```
+
+## Class hooks
+
+Similar to object hooks, class hooks modify the class (or class prototype). Just like for objects it is possible to register hooks that are global to the class or object. Registering hooks also works with inheritance.
+
+> __Note:__ Object or class level global hooks will only run if the method itself has been enabled for hooks.
+
+### JavaScript
+
+```js
+const { hooks } = require('@feathersjs/hooks');
+
+class HelloSayer {
+  async sayHello (name) {
+    return `Hello ${name}`;
+  }
+}
+
+class HappyHelloSayer extends HelloSayer {
+  async sayHello (name) {
+    const baseHello = await super.sayHello(name);
+    return baseHello + '!!!!! :)';
+  }
+}
+
+// To add hooks at the class level we need to use the prototype object
+hooks(HelloSayer.prototype, [
+  async (context, next) => {
+    console.log('Hook on HelloSayer');
+    await next();
+  }
+]);
+
+hooks(HappyHelloSayer.prototype, [
+  async (context, next) => {
+    console.log('Hook on HappyHelloSayer');
+    await next();
+  }
+]);
+
+// Methods can also be wrapped directly on the class
+hooks(HelloSayer, {
+  sayHello: [
+    async (context, next) => {
+      console.log('Hook on HelloSayer.sayHello');
+      await next();
+    }
+  ]
+});
+
+(async () => {
+  const happy = new HappyHelloSayer();
+
+  console.log(await happy.sayHello('David'));
+})();
+```
+
+### TypeScript
+
+Using decorators in TypeScript also respects inheritance:
+
+```ts
+import { hooks, setContext, HookContext, NextFunction } from '@feathersjs/hooks';
+
+@hooks([
+  async (context: HookContext, next: NextFunction) => {
+    console.log('Hook on HelloSayer');
+    await next();
+  }
+])
+class HelloSayer {
+  @hooks([
+    setContext.params('name'),
+    async (context: HookContext, next: NextFunction) => {
+      console.log('Hook on HelloSayer.sayHello');
+      await next();
+    }
+  ])
+  async sayHello (name: string) {
+    return `Hello ${name}`;
+  }
+
+  async otherMethod () {
+    return 'This will not run any hooks';
+  }
+}
+
+@hooks([
+  async (context: HookContext, next: NextFunction) => {
+    console.log('Hook on HappyHelloSayer');
+    await next();
+  }
+])
+class HappyHelloSayer extends HelloSayer {
+  async sayHello (name: string) {
+    const message = await super.sayHello(name);
+    return `${message}!!!!! :)`;
+  }
+}
+
+(async () => {
+  const happy = new HappyHelloSayer();
+
+  console.log(await happy.sayHello('David'));
+})();
+```
+
+> __Note:__ Decorators only work on classes and class methods, not on functions. Standalone (arrow) functions require the [JavaScript function style](#function-hooks) hook registration.
+
 ## Hook Context
 
 The hook `context` in a [middleware function](#middleware) is an object that contains information about the function call. 
@@ -244,11 +428,11 @@ The default properties available are:
 - `context.method` - The name of the function (if it belongs to an object or class)
 - `context.self` - The `this` context of the function being called (may not always be available e.g. for top level arrow functions)
 - `context.result` - The result of the method call
-- `context[name]` - Value of a named parameter when [using named arguments](#using-named-parameters)
+- `context[name]` - Value of a named parameter when [using named arguments](#contextparamsnames)
 
 ### Arguments
 
-By default, the function call arguments will be available as an array in `context.arguments`. The values can be modified to change what is passed to the original function call:
+The function call arguments will be available as an array in `context.arguments`. The values can be modified to change what is passed to the original function call:
 
 ```js
 const { hooks } = require('@feathersjs/hooks');
@@ -269,47 +453,6 @@ const wrappedSayHello = hooks(sayHello, [
   console.log(await wrappedSayHello('David', 'L')); // Hello David X
 })();
 ```
-
-### Using named parameters
-
-It is also possible to turn the arguments into named parameters. In the above example we probably want to have `context.firstName` and `context.lastName` available. To do this, the [`context` option](#options) can be initialized like this:
-
-```js
-const { hooks, middleware } = require('@feathersjs/hooks');
-
-const sayHello = async (firstName, lastName) => {
-  return `Hello ${firstName} ${lastName}!`;
-};
-
-const manager = middleware([
-  async (context, next) => {
-    // Now we can modify `context.lastName` instead
-    context.lastName = 'X';
-    await next();
-  }
-]).params('firstName', 'lastName');
-const wrappedSayHello = hooks(sayHello, manager);
-
-// Or all together
-const wrappedSayHello = hooks(sayHello, middleware([
-  async (context, next) => {
-    // Now we can modify `context.lastName` instead
-    context.lastName = 'X';
-    await next();
-  }
-]).params('firstName', 'lastName'));
-
-(async () => {
-  console.log(await wrappedSayHello('David', 'L')); // Hello David X
-})();
-```
-
-> __Note:__ When using named parameters, `context.arguments` is read only.
-
-### Default values
-
-
-> __Note:__ Even if your original function contains a default value, it is important to specify it because the middleware runs before and the value will be `undefined` without a default value.
 
 ### Modifying the result
 
@@ -377,264 +520,75 @@ const customContext = sayHello.createContext({
 })();
 ```
 
-## Options
+## Built in hooks
 
-Instead an array of middleware, a chainable middleware manager that allows to set additional options can be passed like this:
+`@feathersjs/hooks` comes with three built in hooks that can be used to customize the context.
 
-```js
-const { hooks, middleware } = require('@feathersjs/hooks');
+### setContext.params(...names)
 
-// Initialize middleware manager
-const manager = middleware([
-  hook1,
-  hook2,
-  hook3
-]);
-const sayHelloWithHooks = hooks(sayHello, manager);
-
-// Or all together
-const sayHelloWithHooks = hooks(sayHello, middleware([
-  hook1,
-  hook2,
-  hook3
-]));
-
-(async () => {
-  await sayHelloWithHooks('David');
-})();
-```
-
-### params(...names)
-
-Inititalizes a list of named parameters.
+The `setContext.params(...names)` hook turns the method call arguments into named parameters on the context. The following example allows to read and set `context.firstName` and `context.lastName` in all subsequent hooks:
 
 ```js
-const sayHelloWithHooks = hooks(sayHello, middleware([
-  hook1,
-  hook2,
-  hook3
-]).params('name'));
-```
+const { hooks, setContext } = require('@feathersjs/hooks');
 
-### props(properties)
-
-Initializes properties on the `context`
-
-```js
-const sayHelloWithHooks = hooks(sayHello, middleware([
-  hook1,
-  hook2,
-  hook3
-]).params('name').props({
-  customProperty: true
-}));
-```
-
-> __Note:__ `.props` can not contain any of the field names defined in `.params`.
-
-### defaults(callback)
-
-Calls a `callback(self, arguments, context)` that returns default values which will be set if the property on the hook context is `undefined`. Applies to both, `params` and other properties.
-
-```js
-const sayHello = async (name?: string) => `Hello ${name}`;
-
-const sayHelloWithHooks = hooks(sayHello, middleware([]).params('name').defaults(() => {
-  return {
-    name: 'Unknown human'
-  }
-});
-```
-
-## Function hooks
-
-`hooks(fn, middleware[]|settings)` returns a new function that wraps `fn` with `middleware`
-
-```js
-const { hooks, middleware } = require('@feathersjs/hooks');
-
-const sayHello = async name => {
-  return `Hello ${name}!`;
+const sayHello = async (firstName, lastName) => {
+  return `Hello ${firstName} ${lastName}!`;
 };
 
-const wrappedSayHello = hooks(sayHello, middleware([
+const wrappedSayHello = hooks(sayHello, [
+  // Sets `context.firstName` and `context.lastName`
+  setContext.params('firstName', 'lastName'),
   async (context, next) => {
-    console.log(context.someProperty);
+    // Now we can modify `context.lastName` instead
+    context.lastName = 'X';
     await next();
   }
-]).params('name'));
+]);
 
 (async () => {
-  console.log(await wrappedSayHello('David'));
+  console.log(await wrappedSayHello('David', 'L')); // Hello David X
 })();
 ```
 
-> __Important:__ A wrapped function will _always_ return a Promise even it was not originally `async`.
+> __Note:__ `setContext.params` always needs to be registered before any other hook that is reading or writing that property.
 
-## Object hooks
+### setContext.properties(props)
 
-`hooks(obj, middlewareMap)` takes an object and wraps the functions indicated in `middlewareMap`. It will modify the existing Object `obj`:
+`setContext.properties(props)` returns a hook that always sets the given properties on the context:
 
 ```js
-const { hooks, middleware } = require('@feathersjs/hooks');
+const { version } = require('package.json');
+const { hooks, setContext } = require('@feathersjs/hooks');
 
-const o = {
-  async sayHi (name, quote) {
-    return `Hi ${name} ${quote}`;
-  }
+const sayHello = async (firstName, lastName) => {
+  return `Hello ${firstName} ${lastName}!`;
+};
 
-  async sayHello (name) {
-    return `Hello ${name}!`;
-  }
-}
-
-hooks(o, {
-  sayHello: [ logRuntime ],
-  sayHi: [ logRuntime ]
-});
-
-// With additional options
-hooks(o, {
-  sayHello: middleware([ logRuntime ]).params('name', 'quote'),
-  sayHi: middleware([ logRuntime ]).params('name')
-});
+const wrappedSayHello = hooks(sayHello, [
+  // Sets `context.version`
+  setContext.properties({ version })
+]);
 ```
 
-Hooks can also be registered at the object level which will run before any specific hooks on a hook enabled function:
+### setContext.defaults(callback)
+
+`setContext.defaults(callback)` returns a hook that calls a `callback(context)` that returns default values which will be set if the property on the context is `undefined`:
 
 ```js
-const { hooks } = require('@feathersjs/hooks');
+const { hooks, setContext } = require('@feathersjs/hooks');
+const sayHello = async (name?: string) => `Hello ${name}`;
 
-const o = {
-  async sayHi (name) {
-    return `Hi ${name}!`;
-  }
-
-  async sayHello (name) {
-    return `Hello ${name}!`;
-  }
-}
-
-// This hook will run first for every hook enabled method on the object
-hooks(o, [
-  async (context, next) => {
-    console.log('Top level hook');
-    await next();
-  }
-]);
-
-hooks(o, {
-  sayHi: [ logRuntime ]
-});
-```
-
-## Class hooks
-
-Similar to object hooks, class hooks modify the class (or class prototype). Just like for objects it is possible to register hooks that are global to the class or object. Registering hooks also works with inheritance.
-
-> __Note:__ Object or class level global hooks will only run if the method itself has been enabled for hooks. This can be done by registering hooks with an empty array.
-
-### JavaScript
-
-```js
-const { hooks } = require('@feathersjs/hooks');
-
-class HelloSayer {
-  async sayHello (name) {
-    return `Hello ${name}`;
-  }
-}
-
-class HappyHelloSayer extends HelloSayer {
-  async sayHello (name) {
-    const baseHello = await super.sayHello(name);
-    return baseHello + '!!!!! :)';
-  }
-}
-
-// To add hooks at the class level we need to use the prototype object
-hooks(HelloSayer.prototype, [
-  async (context, next) => {
-    console.log('Hook on HelloSayer');
-    await next();
-  }
-]);
-
-hooks(HappyHelloSayer.prototype, [
-  async (context, next) => {
-    console.log('Hook on HappyHelloSayer');
-    await next();
-  }
-]);
-
-// Methods can also be wrapped directly on the class
-hooks(HelloSayer.prototype, {
-  sayHello: [async (context, next) => {
-    console.log('Hook on HelloSayer.sayHello');
-    await next();
-  }]
-});
-
-(async () => {
-  const happy = new HappyHelloSayer();
-
-  console.log(await happy.sayHello('David'));
-})();
-```
-
-### TypeScript
-
-With decorators and inheritance
-
-```js
-import { hooks, withParams, HookContext, NextFunction } from '@feathersjs/hooks';
-
-@hooks([
-  async (context: HookContext, next: NextFunction) => {
-    console.log('Hook on HelloSayer');
-    await next();
-  }
-])
-class HelloSayer {
-  @hooks({
-    context: withParams('name'),
-    middleware: [
-      async (context: HookContext, next: NextFunction) => {
-        console.log('Hook on HelloSayer.sayHello');
-        await next();
-      }
-    ]
+const sayHelloWithHooks = hooks(sayHello, [
+  setContext.params('name'),
+  setContext.defaults({
+    name: 'Unknown human'
   })
-  async sayHello (name: string) {
-    return `Hello ${name}`;
-  }
-
-  async otherMethod () {
-    return 'This will not run any hooks';
-  }
-}
-
-@hooks([
-  async (context: HookContext, next: NextFunction) => {
-    console.log('Hook on HappyHelloSayer');
-    await next();
-  }
-])
-class HappyHelloSayer extends HelloSayer {
-  async sayHello (name: string) {
-    const message = await super.sayHello(name);
-    return `${message}!!!!! :)`;
-  }
-}
+]);
 
 (async () => {
-  const happy = new HappyHelloSayer();
-
-  console.log(await happy.sayHello('David'));
+  console.log(await sayHello());
 })();
 ```
-
-> __Note:__ Decorators only work on classes and class methods, not on functions. Standalone (arrow) functions require the [JavaScript function style](#function-hooks) hook registration.
 
 # Best practises
 
@@ -658,7 +612,10 @@ class HappyHelloSayer extends HelloSayer {
 
   const findUser = hooks(async query => {
     return collection.find(query);
-  }, middleware([ updateQuery ]).params('query'));
+  }, [
+    contextPrams('query'),
+    updateQuery
+  ]);
   ```
 
 # More Examples
@@ -706,6 +663,8 @@ await getData('http://url-that-takes-long-to-respond');
 When passing e.g. a `user` object to a function call, hooks allow for a better separation of concerns by handling permissions in a hook:
 
 ```js
+const { hooks, setContext } = require('@feathersjs/hooks');
+
 const checkPermission = name => async (context, next) => {
   if (!context.user.permissions.includes(name)) {
     throw new Error(`User does not have ${name} permission`);
@@ -716,7 +675,10 @@ const checkPermission = name => async (context, next) => {
 
 const deleteInvoice = hooks(async (id, user) => {
   return collection.delete(id);
-}, middleware([ checkPermission('admin') ]).params('id', 'user'));
+}, [
+  setContext.params('id', 'user'),
+  checkPermission('admin')
+]);
 ```
 
 ## Cleaning up GraphQL resolvers
@@ -724,7 +686,7 @@ const deleteInvoice = hooks(async (id, user) => {
 The above examples can both be useful for speeding up and locking down existing [GraphQL resolvers](https://graphql.org/learn/execution/): 
 
 ```js
-const { hooks, withParams } = require('@feathersjs/hooks');
+const { hooks, setContext } = require('@feathersjs/hooks');
 
 const checkPermission = name => async (ctx, next) => {
   const { context } = ctx;
@@ -741,10 +703,11 @@ const resolvers = {
       return context.db.loadHumanByID(args.id).then(
         userData => new Human(userData)
       )
-    }, middleware([
+    }, [
+      setContext.params('obj', 'args', 'context', 'info'),
       cache(),
       checkPermission('admin')
-    ]).params('obj', 'args', 'context', 'info'))
+    ])
   }
 }
 ```

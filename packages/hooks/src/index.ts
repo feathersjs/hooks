@@ -4,6 +4,7 @@ import { objectHooks, HookMap } from './object';
 import { hookDecorator } from './decorator';
 import { HookManager, HookContextData, HookContext, HookContextConstructor, HookOptions } from './base';
 
+export * as setContext from './context';
 export * from './function';
 export * from './compose';
 export * from './base';
