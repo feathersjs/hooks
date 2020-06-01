@@ -36,6 +36,10 @@ export class HookManager {
     return this;
   }
 
+  getContextClass (): HookContextConstructor {
+    return HookContext;
+  }
+
   getMiddleware (): Middleware[] {
     const previous = this._parent ? this._parent.getMiddleware() : [];
 

@@ -74,7 +74,7 @@ export function functionHooks <F> (fn: F, managerOrMiddleware: HookOptions) {
 
   return Object.assign(wrapper, {
     original: getOriginal(fn),
-    Context: HookContext,
+    Context: manager.getContextClass(),
     createContext: (data: HookContextData = {}) => {
       return new wrapper.Context(data);
     }
