@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.5.0](https://github.com/feathersjs/hooks/compare/v0.5.0-alpha.0...v0.5.0) (2020-06-01)
+
+
+### Features
+
+* **hooks:** Finalize default initializer functionality ([#35](https://github.com/feathersjs/hooks/issues/35)) ([d380d76](https://github.com/feathersjs/hooks/commit/d380d76891b28160c992438bfb3f28493eacddc4))
+* **hooks:** Refactor .params, .props and .defaults into hooks ([#37](https://github.com/feathersjs/hooks/issues/37)) ([9b13b7d](https://github.com/feathersjs/hooks/commit/9b13b7de6b708a2152927335aae25dd320b4cfeb))
+* **typescript:** Improve type indexes for stricter object and class hooks ([699f2fd](https://github.com/feathersjs/hooks/commit/699f2fd973eb72c0d7c3aefff7b230a7a8a2918a))
+
+
+
+
+
 # [0.5.0-alpha.0](https://github.com/feathersjs/hooks/compare/v0.4.0-alpha.0...v0.5.0-alpha.0) (2020-04-05)
 
 **Note:** Version bump only for package @feathersjs/hooks
