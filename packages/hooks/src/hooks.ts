@@ -1,7 +1,8 @@
 import { compose, Middleware } from './compose';
 import {
-  HookContext, setManager, HookContextData, HookOptions, convertOptions
+  HookContext, setManager, HookContextData, HookOptions, convertOptions, setMiddleware
 } from './base';
+import { properties } from './context';
 
 export function getOriginal (fn: any): any {
   return typeof fn.original === 'function' ? getOriginal(fn.original) : fn;
@@ -22,16 +23,6 @@ function copyProperties <F> (target: F, original: any) {
   return target;
 }
 
-/**
- * Returns a new function that is wrapped in the given hooks.
- * Allows to pass a context updater function, usually used
- * with `withParams` to initialize named parameters. If not passed
- * just set `context.arguments` to the function call arguments
- * and `context.self` to the function call `this` reference.
- *
- * @param original The function to wrap
- * @param opts A list of hooks (middleware) or options for more detailed hook processing
- */
 export function functionHooks <F> (fn: F, managerOrMiddleware: HookOptions) {
   if (typeof fn !== 'function') {
     throw new Error('Can not apply hooks to non-function');
@@ -79,4 +70,57 @@ export function functionHooks <F> (fn: F, managerOrMiddleware: HookOptions) {
       return new wrapper.Context(data);
     }
   });
+};
+
+export type HookMap<O = any> = {
+  [L in keyof O]?: HookOptions;
+}
+
+export function objectHooks (_obj: any, hooks: HookMap|Middleware[]) {
+  const obj = typeof _obj === 'function' ? _obj.prototype : _obj;
+
+  if (Array.isArray(hooks)) {
+    return setMiddleware(obj, hooks);
+  }
+
+  return Object.keys(hooks).reduce((result, method) => {
+    const fn = obj[method];
+
+    if (typeof fn !== 'function') {
+      throw new Error(`Can not apply hooks. '${method}' is not a function`);
+    }
+
+    const manager = convertOptions(hooks[method]);
+
+    manager._middleware.unshift(properties({ method }));
+
+    result[method] = functionHooks(fn, manager);
+
+    return result;
+  }, obj);
+};
+
+export const hookDecorator = (managerOrMiddleware?: HookOptions) => {
+  const wrapper: any = (_target: any, method: string, descriptor: TypedPropertyDescriptor<any>): TypedPropertyDescriptor<any> => {
+    const manager = convertOptions(managerOrMiddleware);
+
+    if (!descriptor) {
+      setManager(_target.prototype, manager);
+
+      return _target;
+    }
+
+    const fn = descriptor.value;
+
+    if (typeof fn !== 'function') {
+      throw new Error(`Can not apply hooks. '${method}' is not a function`);
+    }
+
+    manager._middleware.unshift(properties({ method }));
+    descriptor.value = functionHooks(fn, manager);
+
+    return descriptor;
+  };
+
+  return wrapper;
 };
