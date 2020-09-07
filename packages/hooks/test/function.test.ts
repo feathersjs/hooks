@@ -90,7 +90,7 @@ describe('functionHooks', () => {
       assert.strictEqual(context.self, obj);
       await next();
     };
-    const obj = {
+    const obj: any = {
       message: 'Hi',
 
       sayHi: hooks(async function (this: any, name: string) {
