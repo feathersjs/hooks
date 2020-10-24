@@ -230,7 +230,7 @@ hook2 after
 hook1 after
 ```
 
-This order also applies when using hooks on [objects](#object-hooks) and [classes and with inheritance](class-hooks).
+This order also applies when using hooks on [objects](#object-hooks) and [classes and with inheritance](#class-hooks).
 
 ## Function hooks
 
