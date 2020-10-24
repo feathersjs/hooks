@@ -2,7 +2,6 @@ import { compose, Middleware } from './compose';
 import {
   HookContext, setManager, HookContextData, HookOptions, convertOptions, setMiddleware
 } from './base';
-import { properties } from './context';
 
 export function getOriginal (fn: any): any {
   return typeof fn.original === 'function' ? getOriginal(fn.original) : fn;
@@ -10,7 +9,7 @@ export function getOriginal (fn: any): any {
 
 function copyProperties <F> (target: F, original: any) {
   const originalProps = (Object.keys(original) as any)
-    .concat(Object.getOwnPropertySymbols(original));
+      .concat(Object.getOwnPropertySymbols(original));
 
   for (const prop of originalProps) {
     const propDescriptor = Object.getOwnPropertyDescriptor(original, prop);
@@ -92,9 +91,7 @@ export function objectHooks (_obj: any, hooks: HookMap|Middleware[]) {
 
     const manager = convertOptions(hooks[method]);
 
-    manager._middleware.unshift(properties({ method }));
-
-    result[method] = functionHooks(fn, manager);
+    result[method] = functionHooks(fn, manager.props({ method }));
 
     return result;
   }, obj);
@@ -116,8 +113,7 @@ export const hookDecorator = (managerOrMiddleware?: HookOptions) => {
       throw new Error(`Can not apply hooks. '${method}' is not a function`);
     }
 
-    manager._middleware.unshift(properties({ method }));
-    descriptor.value = functionHooks(fn, manager);
+    descriptor.value = functionHooks(fn, manager.props({ method }));
 
     return descriptor;
   };
