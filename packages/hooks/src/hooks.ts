@@ -9,7 +9,7 @@ export function getOriginal (fn: any): any {
 
 function copyProperties <F> (target: F, original: any) {
   const originalProps = (Object.keys(original) as any)
-      .concat(Object.getOwnPropertySymbols(original));
+    .concat(Object.getOwnPropertySymbols(original));
 
   for (const prop of originalProps) {
     const propDescriptor = Object.getOwnPropertyDescriptor(original, prop);
