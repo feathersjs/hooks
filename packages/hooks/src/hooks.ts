@@ -39,22 +39,28 @@ export function functionHooks <F> (fn: F, managerOrMiddleware: HookOptions) {
     // Assemble the hook chain
     const hookChain: Middleware[] = [
       // Return `ctx.result` or the context
-      (ctx, next) => next().then(() => returnContext ? ctx : ctx.result),
-      // Create the hook chain by calling the `collectMiddleware function
-      ...manager.collectMiddleware(this, args),
-      // Runs the actual original method if `ctx.result` is not already set
-      (ctx, next) => {
-        if (ctx.result === undefined) {
-          return Promise.resolve(original.apply(this, ctx.arguments)).then(result => {
-            ctx.result = result;
-
-            return next();
-          });
-        }
-
-        return next();
-      }
+      (ctx, next) => next().then(() => returnContext ? ctx : ctx.result)
     ];
+
+    // Create the hook chain by calling the `collectMiddleware function
+    const mw = manager.collectMiddleware(this, args);
+
+    if (mw) {
+      Array.prototype.push.apply(hookChain, mw);
+    }
+
+    // Runs the actual original method if `ctx.result` is not already set
+    hookChain.push((ctx, next) => {
+      if (ctx.result === undefined) {
+        return Promise.resolve(original.apply(this, ctx.arguments)).then(result => {
+          ctx.result = result;
+
+          return next();
+        });
+      }
+
+      return next();
+    });
 
     return compose(hookChain).call(this, context);
   };

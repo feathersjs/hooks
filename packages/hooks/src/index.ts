@@ -20,7 +20,7 @@ export type WrappedFunction<F, T> = F&((...rest: any[]) => Promise<T>|Promise<Ho
  * Initializes a hook settings object with the given middleware.
  * @param mw The list of middleware
  */
-export function middleware (mw: Middleware[] = []) {
+export function middleware (mw?: Middleware[]) {
   const manager = new HookManager();
 
   return manager.middleware(mw);

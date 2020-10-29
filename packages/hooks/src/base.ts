@@ -26,9 +26,9 @@ export type HookDefaultsInitializer = (self?: any, args?: any[], context?: HookC
 
 export class HookManager {
   _parent?: this|null = null;
-  _params: string[] = [];
-  _middleware: Middleware[] = [];
-  _props: HookContextData = {};
+  _params: string[]|null = null;
+  _middleware: Middleware[]|null = null;
+  _props: HookContextData|null = null;
   _defaults: HookDefaultsInitializer;
 
   parent (parent: this) {
@@ -37,34 +37,67 @@ export class HookManager {
     return this;
   }
 
-  middleware (middleware: Middleware[]) {
-    this._middleware = middleware;
+  middleware (middleware?: Middleware[]) {
+    this._middleware = middleware?.length ? middleware : null;
 
     return this;
   }
 
-  getMiddleware (): Middleware[] {
-    const previous = this._parent ? this._parent.getMiddleware() : [];
+  getMiddleware (): Middleware[]|null {
+    if (this._parent) {
+      const previous = this._parent.getMiddleware();
 
-    return previous.concat(this._middleware);
+      if (previous) {
+        if (this._middleware) {
+          return this._parent.getMiddleware().concat(this._middleware);
+        }
+
+        return previous;
+      }
+    }
+
+    return this._middleware;
   }
 
   collectMiddleware (self: any, _args: any[]): Middleware[] {
     const otherMiddleware = getMiddleware(self);
+    const middleware = this.getMiddleware();
 
-    return otherMiddleware.concat(this.getMiddleware());
+    if (otherMiddleware) {
+      if (middleware) {
+        return otherMiddleware.concat(middleware);
+      }
+
+      return otherMiddleware;
+    }
+
+    return this.getMiddleware();
   }
 
   props (props: HookContextData) {
+    if (!this._props) {
+      this._props = {};
+    }
+
     Object.assign(this._props, props);
 
     return this;
   }
 
   getProps (): HookContextData {
-    const previous = this._parent ? this._parent.getProps() : {};
+    if (this._parent) {
+      const previous = this._parent.getProps();
 
-    return Object.assign({}, previous, this._props);
+      if (previous) {
+        if (this._props) {
+          return Object.assign({}, previous, this._props);
+        }
+
+        return previous;
+      }
+    }
+
+    return this._props;
   }
 
   params (...params: string[]) {
@@ -74,9 +107,19 @@ export class HookManager {
   }
 
   getParams (): string[] {
-    const previous = this._parent ? this._parent.getParams() : [];
+    if (this._parent) {
+      const previous = this._parent.getParams();
 
-    return previous.concat(this._params);
+      if (previous) {
+        if (this._params) {
+          return previous.concat(this._params);
+        }
+
+        return previous;
+      }
+    }
+
+    return this._params;
   }
 
   defaults (defaults: HookDefaultsInitializer) {
@@ -86,10 +129,21 @@ export class HookManager {
   }
 
   getDefaults (self: any, args: any[], context: HookContext): HookContextData {
-    const previous = this._parent ? this._parent.getDefaults(self, args, context) : {};
-    const defaults = typeof this._defaults === 'function' ? this._defaults(self, args, context) : {};
+    const defaults = typeof this._defaults === 'function' ? this._defaults(self, args, context) : null;
 
-    return Object.assign({}, previous, defaults);
+    if (this._parent) {
+      const previous = this._parent.getDefaults(self, args, context);
+
+      if (previous) {
+        if (this._props) {
+          return Object.assign({}, previous, this._props);
+        }
+
+        return previous;
+      }
+    }
+
+    return defaults;
   }
 
   getContextClass (Base: HookContextConstructor = HookContext): HookContextConstructor {
@@ -103,23 +157,27 @@ export class HookManager {
     const params = this.getParams();
     const props = this.getProps();
 
-    params.forEach((name, index) => {
-      if (props[name]) {
-        throw new Error(`Hooks can not have a property and param named '${name}'. Use .defaults instead.`);
-      }
-
-      Object.defineProperty(ContextClass.prototype, name, {
-        enumerable: true,
-        get () {
-          return this?.arguments[index];
-        },
-        set (value: any) {
-          this.arguments[index] = value;
+    if (params) {
+      params.forEach((name, index) => {
+        if (props?.[name]) {
+          throw new Error(`Hooks can not have a property and param named '${name}'. Use .defaults instead.`);
         }
-      });
-    });
 
-    Object.assign(ContextClass.prototype, props);
+        Object.defineProperty(ContextClass.prototype, name, {
+          enumerable: true,
+          get () {
+            return this?.arguments[index];
+          },
+          set (value: any) {
+            this.arguments[index] = value;
+          }
+        });
+      });
+    }
+
+    if (props) {
+      Object.assign(ContextClass.prototype, props);
+    }
 
     return ContextClass;
   }
@@ -134,9 +192,11 @@ export class HookManager {
 
     ctx.arguments = args;
 
-    for (const name of Object.keys(defaults)) {
-      if (ctx[name] === undefined) {
-        ctx[name] = defaults[name];
+    if (defaults) {
+      for (const name of Object.keys(defaults)) {
+        if (ctx[name] === undefined) {
+          ctx[name] = defaults[name];
+        }
       }
     }
 
@@ -144,9 +204,13 @@ export class HookManager {
   }
 }
 
-export type HookOptions = HookManager|Middleware[];
+export type HookOptions = HookManager|Middleware[]|null;
 
-export function convertOptions (options: HookOptions = []) {
+export function convertOptions (options: HookOptions = null) {
+  if (!options) {
+    return new HookManager()
+  }
+
   return Array.isArray(options) ? new HookManager().middleware(options) : options;
 }
 
@@ -162,10 +226,10 @@ export function setManager<T> (target: T, manager: HookManager) {
   return target;
 }
 
-export function getMiddleware (target: any): Middleware[] {
+export function getMiddleware (target: any): Middleware[]|null {
   const manager = getManager(target);
 
-  return manager ? manager.getMiddleware() : [];
+  return manager ? manager.getMiddleware() : null;
 }
 
 export function setMiddleware<T> (target: T, middleware: Middleware[]) {
