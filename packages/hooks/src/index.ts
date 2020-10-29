@@ -16,14 +16,34 @@ export interface WrapperAddon<F> {
 
 export type WrappedFunction<F, T> = F&((...rest: any[]) => Promise<T>|Promise<HookContext>)&WrapperAddon<F>;
 
+export type MiddlewareOptions = {
+  params?: any;
+  defaults?: any;
+  props?: any;
+};
+
 /**
  * Initializes a hook settings object with the given middleware.
  * @param mw The list of middleware
  */
-export function middleware (mw?: Middleware[]) {
-  const manager = new HookManager();
+export function middleware (mw?: Middleware[], options?: MiddlewareOptions) {
+  const manager = new HookManager().middleware(mw);
 
-  return manager.middleware(mw);
+  if (options) {
+    if (options.params) {
+      manager.params(options.params);
+    }
+
+    if (options.defaults) {
+      manager.defaults(options.defaults);
+    }
+
+    if (options.props) {
+      manager.props(options.props);
+    }
+  }
+
+  return manager;
 }
 
 /**

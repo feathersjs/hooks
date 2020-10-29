@@ -199,6 +199,24 @@ describe('functionHooks', () => {
     assert.equal(await fn('Dave'), 'Hello Changed');
   });
 
+  it('assigns props to context by options', async () => {
+    const fn = hooks(hello, middleware([
+      async (ctx, next) => {
+        assert.equal(ctx.name, 'Dave');
+        assert.equal(ctx.dev, true);
+
+        ctx.name = 'Changed';
+
+        await next();
+      }
+    ], {
+      params: ['name'],
+      props: { dev: true }
+    }));
+
+    assert.equal(await fn('Dave'), 'Hello Changed');
+  });
+
   it('ctx.arguments is configurable with named params', async () => {
     const modifyArgs = async (ctx: HookContext, next: NextFunction) => {
       ctx.arguments[0] = 'Changed';
