@@ -1,11 +1,5 @@
 import { strict as assert } from 'assert';
-import {
-  hooks,
-  middleware,
-  HookContext,
-  NextFunction,
-  setContext
-} from '../src';
+import { hooks, middleware, HookContext, NextFunction } from '../src';
 
 interface Dummy {
   sayHi (name: string): Promise<string>;
@@ -31,7 +25,6 @@ describe('class objectHooks', () => {
   it('hooking object on class adds to the prototype', async () => {
     hooks(DummyClass, {
       sayHi: middleware([
-        setContext.params('name'),
         async (ctx: HookContext, next: NextFunction) => {
           assert.deepStrictEqual(ctx, new DummyClass.prototype.sayHi.Context({
             arguments: ['David'],
@@ -44,7 +37,7 @@ describe('class objectHooks', () => {
 
           ctx.result += '?';
         }
-      ]),
+      ]).params('name'),
 
       addOne: middleware([
         async (ctx: HookContext, next: NextFunction) => {
@@ -97,7 +90,6 @@ describe('class objectHooks', () => {
   it('works with multiple context updaters', async () => {
     hooks(DummyClass, {
       sayHi: middleware([
-        setContext.params('name'),
         async (ctx, next) => {
           assert.equal(ctx.name, 'Dave');
 
@@ -105,28 +97,27 @@ describe('class objectHooks', () => {
 
           await next();
         }
-      ])
+      ]).params('name')
     });
 
-    class OtherDummy extends DummyClass {}
+    class OtherDummy extends DummyClass {
+    }
 
     hooks(OtherDummy, {
-      sayHi: [
-        setContext.properties({ gna: 42 }),
+      sayHi: middleware([
         async (ctx, next) => {
           assert.equal(ctx.name, 'Changed');
           assert.equal(ctx.gna, 42);
 
           await next();
         }
-      ]
+      ]).props({ gna: 42 })
     });
 
     const instance = new OtherDummy();
 
     hooks(instance, {
       sayHi: middleware([
-        setContext.properties({ app: 'ok' }),
         async (ctx, next) => {
           assert.equal(ctx.name, 'Changed');
           assert.equal(ctx.gna, 42);
@@ -134,7 +125,7 @@ describe('class objectHooks', () => {
 
           await next();
         }
-      ])
+      ]).props({ app: 'ok' })
     });
 
     assert.equal(await instance.sayHi('Dave'), 'Hi Changed');
