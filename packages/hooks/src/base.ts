@@ -1,9 +1,13 @@
 import { Middleware } from './compose';
+import { copyToSelf } from './utils';
 
 export const HOOKS: string = Symbol('@feathersjs/hooks') as any;
 
 export type HookContextData = { [key: string]: any };
 
+/**
+ * The base hook context.
+ */
 export class HookContext<T = any, C = any> {
   result?: T;
   method?: string;
@@ -18,11 +22,14 @@ export class HookContext<T = any, C = any> {
 
 export type HookContextConstructor = new (data?: { [key: string]: any }) => HookContext;
 
-export type HookDefaultsInitializer = (context: HookContext) => HookContextData;
+export type HookDefaultsInitializer = (self?: any, args?: any[], context?: HookContext) => HookContextData;
 
 export class HookManager {
   _parent?: this|null = null;
-  _middleware: Middleware[] = [];
+  _params: string[]|null = null;
+  _middleware: Middleware[]|null = null;
+  _props: HookContextData|null = null;
+  _defaults: HookDefaultsInitializer;
 
   parent (parent: this) {
     this._parent = parent;
@@ -30,31 +37,154 @@ export class HookManager {
     return this;
   }
 
-  middleware (middleware: Middleware[]) {
-    this._middleware = middleware;
+  middleware (middleware?: Middleware[]) {
+    this._middleware = middleware?.length ? middleware : null;
 
     return this;
   }
 
-  getContextClass (): HookContextConstructor {
-    return HookContext;
+  getMiddleware (): Middleware[]|null {
+    if (this._parent) {
+      const previous = this._parent.getMiddleware();
+
+      if (previous) {
+        if (this._middleware) {
+          return this._parent.getMiddleware().concat(this._middleware);
+        }
+
+        return previous;
+      }
+    }
+
+    return this._middleware;
   }
 
-  getMiddleware (): Middleware[] {
-    const previous = this._parent ? this._parent.getMiddleware() : [];
-
-    return previous.concat(this._middleware);
-  }
-
-   collectMiddleware (self: any, _args: any[]): Middleware[] {
+  collectMiddleware (self: any, _args: any[]): Middleware[] {
     const otherMiddleware = getMiddleware(self);
+    const middleware = this.getMiddleware();
 
-    return otherMiddleware.concat(this.getMiddleware());
+    if (otherMiddleware) {
+      if (middleware) {
+        return otherMiddleware.concat(middleware);
+      }
+
+      return otherMiddleware;
+    }
+
+    return this.getMiddleware();
   }
 
+  props (props: HookContextData) {
+    if (!this._props) {
+      this._props = {};
+    }
+
+    Object.assign(this._props, props);
+
+    return this;
+  }
+
+  getProps (): HookContextData {
+    if (this._parent) {
+      const previous = this._parent.getProps();
+
+      if (previous) {
+        if (this._props) {
+          return Object.assign({}, previous, this._props);
+        }
+
+        return previous;
+      }
+    }
+
+    return this._props;
+  }
+
+  params (...params: string[]) {
+    this._params = params;
+
+    return this;
+  }
+
+  getParams (): string[] {
+    if (this._parent) {
+      const previous = this._parent.getParams();
+
+      if (previous) {
+        if (this._params) {
+          return previous.concat(this._params);
+        }
+
+        return previous;
+      }
+    }
+
+    return this._params;
+  }
+
+  defaults (defaults: HookDefaultsInitializer) {
+    this._defaults = defaults;
+
+    return this;
+  }
+
+  getDefaults (self: any, args: any[], context: HookContext): HookContextData {
+    const defaults = typeof this._defaults === 'function' ? this._defaults(self, args, context) : null;
+
+    if (this._parent) {
+      const previous = this._parent.getDefaults(self, args, context);
+
+      if (previous) {
+        if (this._props) {
+          return Object.assign({}, previous, this._props);
+        }
+
+        return previous;
+      }
+    }
+
+    return defaults;
+  }
+
+  getContextClass (Base: HookContextConstructor = HookContext): HookContextConstructor {
+    const ContextClass = class ContextClass extends Base {
+      constructor (data: any) {
+        super(data);
+
+        copyToSelf(this);
+      }
+    };
+    const params = this.getParams();
+    const props = this.getProps();
+
+    if (params) {
+      params.forEach((name, index) => {
+        if (props?.[name]) {
+          throw new Error(`Hooks can not have a property and param named '${name}'. Use .defaults instead.`);
+        }
+
+        Object.defineProperty(ContextClass.prototype, name, {
+          enumerable: true,
+          get () {
+            return this?.arguments[index];
+          },
+          set (value: any) {
+            this.arguments[index] = value;
+          }
+        });
+      });
+    }
+
+    if (props) {
+      Object.assign(ContextClass.prototype, props);
+    }
+
+    return ContextClass;
+  }
 
   initializeContext (self: any, args: any[], context: HookContext): HookContext {
     const ctx = this._parent ? this._parent.initializeContext(self, args, context) : context;
+    const defaults = this.getDefaults(self, args, ctx);
 
     if (self) {
       ctx.self = self;
@@ -62,13 +192,25 @@ export class HookManager {
 
     ctx.arguments = args;
 
+    if (defaults) {
+      for (const name of Object.keys(defaults)) {
+        if (ctx[name] === undefined) {
+          ctx[name] = defaults[name];
+        }
+      }
+    }
+
     return ctx;
   }
 }
 
-export type HookOptions = HookManager|Middleware[];
+export type HookOptions = HookManager|Middleware[]|null;
 
-export function convertOptions (options: HookOptions = []) {
+export function convertOptions (options: HookOptions = null) {
+  if (!options) {
+    return new HookManager()
+  }
+
   return Array.isArray(options) ? new HookManager().middleware(options) : options;
 }
 
@@ -84,10 +226,10 @@ export function setManager<T> (target: T, manager: HookManager) {
   return target;
 }
 
-export function getMiddleware (target: any): Middleware[] {
+export function getMiddleware (target: any): Middleware[]|null {
   const manager = getManager(target);
 
-  return manager ? manager.getMiddleware() : [];
+  return manager ? manager.getMiddleware() : null;
 }
 
 export function setMiddleware<T> (target: T, middleware: Middleware[]) {
