@@ -44,16 +44,14 @@ export class HookManager {
   }
 
   getMiddleware (): Middleware[]|null {
-    if (this._parent) {
-      const previous = this._parent.getMiddleware();
+    const previous = this._parent?.getMiddleware();
 
-      if (previous) {
-        if (this._middleware) {
-          return this._parent.getMiddleware().concat(this._middleware);
-        }
-
-        return previous;
+    if (previous) {
+      if (this._middleware) {
+        return previous.concat(this._middleware);
       }
+
+      return previous;
     }
 
     return this._middleware;
@@ -85,16 +83,10 @@ export class HookManager {
   }
 
   getProps (): HookContextData {
-    if (this._parent) {
-      const previous = this._parent.getProps();
+    const previous = this._parent?.getProps();
 
-      if (previous) {
-        if (this._props) {
-          return Object.assign({}, previous, this._props);
-        }
-
-        return previous;
-      }
+    if (previous) {
+      return Object.assign({}, previous, this._props);
     }
 
     return this._props;
@@ -107,19 +99,9 @@ export class HookManager {
   }
 
   getParams (): string[] {
-    if (this._parent) {
-      const previous = this._parent.getParams();
+    const previous = this._parent?.getParams();
 
-      if (previous) {
-        if (this._params) {
-          return previous.concat(this._params);
-        }
-
-        return previous;
-      }
-    }
-
-    return this._params;
+    return previous || this._params;
   }
 
   defaults (defaults: HookDefaultsInitializer) {
@@ -130,17 +112,10 @@ export class HookManager {
 
   getDefaults (self: any, args: any[], context: HookContext): HookContextData {
     const defaults = typeof this._defaults === 'function' ? this._defaults(self, args, context) : null;
+    const previous = this._parent?.getDefaults(self, args, context);
 
-    if (this._parent) {
-      const previous = this._parent.getDefaults(self, args, context);
-
-      if (previous) {
-        if (this._props) {
-          return Object.assign({}, previous, this._props);
-        }
-
-        return previous;
-      }
+    if (previous) {
+      return Object.assign({}, previous, this._props);
     }
 
     return defaults;
