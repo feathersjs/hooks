@@ -156,10 +156,16 @@ describe('functionHooks', () => {
     assert.strictEqual(result, 'Hello Dave Three Two One');
   });
 
-  it('chains context initializers', async () => {
-    const first = hooks(hello, middleware([]).params('name'));
+  it('chains context and default initializers', async () => {
+    const first = hooks(hello, middleware([], {
+      params: [ 'name' ],
+      defaults () {
+        return { defaulting: true };
+      }
+    }));
     const second = hooks(first, middleware([
       async (ctx, next) => {
+        assert.ok(ctx.defaulting);
         ctx.name += ctx.testing;
         await next();
       }
