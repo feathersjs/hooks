@@ -40,6 +40,15 @@
   "directories": {
     "lib": "lib"
   },
+  "files": [
+    "CHANGELOG.md",
+    "LICENSE",
+    "README.md",
+    "src/**",
+    "lib/**",
+    "deno/**",
+    "dist/**"
+  ],
   "publishConfig": {
     "access": "public"
   },
