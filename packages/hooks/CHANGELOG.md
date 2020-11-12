@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.6.0](https://github.com/feathersjs/hooks/compare/v0.5.0...v0.6.0) (2020-11-12)
+
+
+### Features
+
+* **hooks:** Revert refactoring into separate hooks (PR [#37](https://github.com/feathersjs/hooks/issues/37)) ([#57](https://github.com/feathersjs/hooks/issues/57)) ([56a44be](https://github.com/feathersjs/hooks/commit/56a44beb3388873f7bef12ac640f115beffceb95))
+
+
+
+
+
 # [0.5.0](https://github.com/feathersjs/hooks/compare/v0.5.0-alpha.0...v0.5.0) (2020-06-01)
 
 

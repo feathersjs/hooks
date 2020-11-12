@@ -1,6 +1,6 @@
 {
   "name": "@feathersjs/hooks",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Async middleware for JavaScript and TypeScript",
   "homepage": "https://feathersjs.com",
   "keywords": [
