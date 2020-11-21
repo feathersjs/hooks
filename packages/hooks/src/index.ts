@@ -31,7 +31,7 @@ export function middleware (mw?: Middleware[], options?: MiddlewareOptions) {
 
   if (options) {
     if (options.params) {
-      manager.params(options.params);
+      manager.params(...options.params);
     }
 
     if (options.defaults) {
