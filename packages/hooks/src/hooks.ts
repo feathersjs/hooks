@@ -31,9 +31,9 @@ export function functionHooks <F> (fn: F, managerOrMiddleware: HookOptions) {
   const wrapper: any = function (this: any, ...args: any[]) {
     const { Context, original } = wrapper;
     // If we got passed an existing HookContext instance, we want to return it as well
-    const returnContext = args[args.length - 1] instanceof Context;
+    const returnContext = args[args.length - 1] instanceof HookContext;
     // Use existing context or default
-    const base = returnContext ? (args.pop() as HookContext) : new Context();
+    const base = returnContext ? args.pop() : new Context();
     // Initialize the context
     const context = manager.initializeContext(this, args, base);
     // Assemble the hook chain
