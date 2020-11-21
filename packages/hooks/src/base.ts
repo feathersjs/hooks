@@ -134,7 +134,7 @@ export class HookManager {
 
     if (params) {
       params.forEach((name, index) => {
-        if (props?.[name]) {
+        if (props?.[name] !== undefined) {
           throw new Error(`Hooks can not have a property and param named '${name}'. Use .defaults instead.`);
         }
 
