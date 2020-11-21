@@ -69,7 +69,7 @@ export class HookManager {
       return otherMiddleware;
     }
 
-    return this.getMiddleware();
+    return middleware;
   }
 
   props (props: HookContextData) {
