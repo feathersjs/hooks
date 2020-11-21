@@ -1,5 +1,5 @@
 import { Middleware } from './compose';
-import { copyToSelf } from './utils';
+import { copyToSelf, copyProperties } from './utils';
 
 export const HOOKS: string = Symbol('@feathersjs/hooks') as any;
 
@@ -44,34 +44,24 @@ export class HookManager {
   }
 
   getMiddleware (): Middleware[]|null {
-    if (this._parent) {
-      const previous = this._parent.getMiddleware();
+    const previous = this._parent && this._parent.getMiddleware();
 
-      if (previous) {
-        if (this._middleware) {
-          return this._parent.getMiddleware().concat(this._middleware);
-        }
-
-        return previous;
-      }
+    if (previous && this._middleware) {
+      return previous.concat(this._middleware);
     }
 
-    return this._middleware;
+    return previous || this._middleware;
   }
 
   collectMiddleware (self: any, _args: any[]): Middleware[] {
     const otherMiddleware = getMiddleware(self);
     const middleware = this.getMiddleware();
 
-    if (otherMiddleware) {
-      if (middleware) {
-        return otherMiddleware.concat(middleware);
-      }
-
-      return otherMiddleware;
+    if (otherMiddleware && middleware) {
+      return otherMiddleware.concat(middleware);
     }
 
-    return this.getMiddleware();
+    return otherMiddleware || middleware;
   }
 
   props (props: HookContextData) {
@@ -79,25 +69,24 @@ export class HookManager {
       this._props = {};
     }
 
-    Object.assign(this._props, props);
+    copyProperties(this._props, props);
 
     return this;
   }
 
   getProps (): HookContextData {
-    if (this._parent) {
-      const previous = this._parent.getProps();
+    const previous = this._parent && this._parent.getProps();
 
-      if (previous) {
-        if (this._props) {
-          return Object.assign({}, previous, this._props);
-        }
-
-        return previous;
+    if (previous && this._props) {
+      if (this._props) {
+        const result = {};
+        copyProperties(result, previous);
+        copyProperties(result, this._props);
+        return result;
       }
     }
 
-    return this._props;
+    return previous || this._props;
   }
 
   params (...params: string[]) {
@@ -107,19 +96,13 @@ export class HookManager {
   }
 
   getParams (): string[] {
-    if (this._parent) {
-      const previous = this._parent.getParams();
+    const previous = this._parent && this._parent.getParams();
 
-      if (previous) {
-        if (this._params) {
-          return previous.concat(this._params);
-        }
-
-        return previous;
-      }
+    if (previous && this._params) {
+      return previous.concat(this._params);
     }
 
-    return this._params;
+    return previous || this._params;
   }
 
   defaults (defaults: HookDefaultsInitializer) {
@@ -130,20 +113,13 @@ export class HookManager {
 
   getDefaults (self: any, args: any[], context: HookContext): HookContextData {
     const defaults = typeof this._defaults === 'function' ? this._defaults(self, args, context) : null;
+    const previous = this._parent && this._parent.getDefaults(self, args, context);
 
-    if (this._parent) {
-      const previous = this._parent.getDefaults(self, args, context);
-
-      if (previous) {
-        if (this._props) {
-          return Object.assign({}, previous, this._props);
-        }
-
-        return previous;
-      }
+    if (previous && defaults) {
+      return Object.assign({}, previous, defaults);
     }
 
-    return defaults;
+    return previous || defaults;
   }
 
   getContextClass (Base: HookContextConstructor = HookContext): HookContextConstructor {
@@ -159,7 +135,7 @@ export class HookManager {
 
     if (params) {
       params.forEach((name, index) => {
-        if (props?.[name]) {
+        if (props?.[name] !== undefined) {
           throw new Error(`Hooks can not have a property and param named '${name}'. Use .defaults instead.`);
         }
 
@@ -176,7 +152,7 @@ export class HookManager {
     }
 
     if (props) {
-      Object.assign(ContextClass.prototype, props);
+      copyProperties(ContextClass.prototype, props);
     }
 
     return ContextClass;
