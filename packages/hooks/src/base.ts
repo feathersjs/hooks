@@ -78,12 +78,7 @@ export class HookManager {
     const previous = this._parent?.getProps();
 
     if (previous && this._props) {
-      if (this._props) {
-        const result = {};
-        copyProperties(result, previous);
-        copyProperties(result, this._props);
-        return result;
-      }
+      return copyProperties({}, previous, this._props);
     }
 
     return previous || this._props;

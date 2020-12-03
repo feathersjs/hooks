@@ -29,15 +29,17 @@ export function copyToSelf (target: any) {
   }
 }
 
-export function copyProperties <F> (target: F, original: any) {
-  const originalProps = (Object.keys(original) as any)
-      .concat(Object.getOwnPropertySymbols(original));
+export function copyProperties <F> (target: F, ...originals: any[]) {
+  for (const original of originals) {
+    const originalProps = (Object.keys(original) as any)
+        .concat(Object.getOwnPropertySymbols(original));
 
-  for (const prop of originalProps) {
-    const propDescriptor = Object.getOwnPropertyDescriptor(original, prop);
+    for (const prop of originalProps) {
+      const propDescriptor = Object.getOwnPropertyDescriptor(original, prop);
 
-    if (!target.hasOwnProperty(prop)) {
-      Object.defineProperty(target, prop, propDescriptor);
+      if (!target.hasOwnProperty(prop)) {
+        Object.defineProperty(target, prop, propDescriptor);
+      }
     }
   }
 
