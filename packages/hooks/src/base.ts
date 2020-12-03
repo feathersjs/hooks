@@ -44,7 +44,7 @@ export class HookManager {
   }
 
   getMiddleware (): Middleware[]|null {
-    const previous = this._parent && this._parent.getMiddleware();
+    const previous = this._parent?.getMiddleware();
 
     if (previous && this._middleware) {
       return previous.concat(this._middleware);
@@ -75,7 +75,7 @@ export class HookManager {
   }
 
   getProps (): HookContextData {
-    const previous = this._parent && this._parent.getProps();
+    const previous = this._parent?.getProps();
 
     if (previous && this._props) {
       if (this._props) {
