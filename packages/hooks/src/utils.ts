@@ -12,9 +12,14 @@ export function copyToSelf (target: any) {
       const getter = hasProtoDefinitions ? target.constructor.prototype.__lookupGetter__(key)
         : Object.getOwnPropertyDescriptor(target, key);
 
-      if (getter && hasProtoDefinitions) {
+      if (hasProtoDefinitions && getter) {
         target.__defineGetter__(key, getter);
-        target.__defineSetter__(key, target.constructor.prototype.__lookupSetter__(key));
+
+        const setter = target.constructor.prototype.__lookupSetter__(key);
+
+        if (setter) {
+          target.__defineSetter__(key, setter);
+        }
       } else if (getter) {
         Object.defineProperty(target, key, getter);
       } else {
@@ -22,4 +27,21 @@ export function copyToSelf (target: any) {
       }
     }
   }
+}
+
+export function copyProperties <F> (target: F, ...originals: any[]) {
+  for (const original of originals) {
+    const originalProps = (Object.keys(original) as any)
+        .concat(Object.getOwnPropertySymbols(original));
+
+    for (const prop of originalProps) {
+      const propDescriptor = Object.getOwnPropertyDescriptor(original, prop);
+
+      if (!target.hasOwnProperty(prop)) {
+        Object.defineProperty(target, prop, propDescriptor);
+      }
+    }
+  }
+
+  return target;
 }

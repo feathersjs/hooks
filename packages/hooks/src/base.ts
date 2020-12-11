@@ -1,5 +1,5 @@
 import { Middleware } from './compose';
-import { copyToSelf } from './utils';
+import { copyToSelf, copyProperties } from './utils';
 
 export const HOOKS: string = Symbol('@feathersjs/hooks') as any;
 
@@ -46,30 +46,22 @@ export class HookManager {
   getMiddleware (): Middleware[]|null {
     const previous = this._parent?.getMiddleware();
 
-    if (previous) {
-      if (this._middleware) {
-        return previous.concat(this._middleware);
-      }
-
-      return previous;
+    if (previous && this._middleware) {
+      return previous.concat(this._middleware);
     }
 
-    return this._middleware;
+    return previous || this._middleware;
   }
 
   collectMiddleware (self: any, _args: any[]): Middleware[] {
     const otherMiddleware = getMiddleware(self);
     const middleware = this.getMiddleware();
 
-    if (otherMiddleware) {
-      if (middleware) {
-        return otherMiddleware.concat(middleware);
-      }
-
-      return otherMiddleware;
+    if (otherMiddleware && middleware) {
+      return otherMiddleware.concat(middleware);
     }
 
-    return middleware;
+    return otherMiddleware || middleware;
   }
 
   props (props: HookContextData) {
@@ -77,7 +69,7 @@ export class HookManager {
       this._props = {};
     }
 
-    Object.assign(this._props, props);
+    copyProperties(this._props, props);
 
     return this;
   }
@@ -85,11 +77,11 @@ export class HookManager {
   getProps (): HookContextData {
     const previous = this._parent?.getProps();
 
-    if (previous) {
-      return Object.assign({}, previous, this._props);
+    if (previous && this._props) {
+      return copyProperties({}, previous, this._props);
     }
 
-    return this._props;
+    return previous || this._props;
   }
 
   params (...params: string[]) {
@@ -100,6 +92,10 @@ export class HookManager {
 
   getParams (): string[] {
     const previous = this._parent?.getParams();
+
+    if (previous && this._params) {
+      return previous.concat(this._params);
+    }
 
     return previous || this._params;
   }
@@ -114,11 +110,11 @@ export class HookManager {
     const defaults = typeof this._defaults === 'function' ? this._defaults(self, args, context) : null;
     const previous = this._parent?.getDefaults(self, args, context);
 
-    if (previous) {
-      return Object.assign({}, previous, this._props);
+    if (previous && defaults) {
+      return Object.assign({}, previous, defaults);
     }
 
-    return defaults;
+    return previous || defaults;
   }
 
   getContextClass (Base: HookContextConstructor = HookContext): HookContextConstructor {
@@ -151,7 +147,7 @@ export class HookManager {
     }
 
     if (props) {
-      Object.assign(ContextClass.prototype, props);
+      copyProperties(ContextClass.prototype, props);
     }
 
     return ContextClass;
