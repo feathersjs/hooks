@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.6.1](https://github.com/feathersjs/hooks/compare/v0.6.0...v0.6.1) (2020-12-11)
+
+
+### Bug Fixes
+
+* **hooks:** fix some errors for feathers integration ([#67](https://github.com/feathersjs/hooks/issues/67)) ([fcfc0ca](https://github.com/feathersjs/hooks/commit/fcfc0ca6423a8062959d41f34e673f81d3c006dd))
+* **hooks:** Remove redundant method call ([#65](https://github.com/feathersjs/hooks/issues/65)) ([4ff10a9](https://github.com/feathersjs/hooks/commit/4ff10a9935682276b8ca3ffb699275b627230dfa))
+* **hooks:** Stricter condition ([#64](https://github.com/feathersjs/hooks/issues/64)) ([6de77a1](https://github.com/feathersjs/hooks/commit/6de77a1afcbee4867b7e464be0b556a8dc9656e3))
+
+
+
+
+
 # [0.6.0](https://github.com/feathersjs/hooks/compare/v0.5.0...v0.6.0) (2020-11-12)
 
 
