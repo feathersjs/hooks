@@ -37,7 +37,7 @@ export function functionHooks <F> (fn: F, managerOrMiddleware: HookOptions) {
 
     // Runs the actual original method if `ctx.result` is not already set
     hookChain.push((ctx, next) => {
-      if (Object.getOwnPropertyDescriptor(context, 'result') === undefined) {
+      if (!Object.hasOwnProperty.call(context, 'result')) {
         return Promise.resolve(original.apply(this, ctx.arguments)).then(result => {
           ctx.result = result;
 

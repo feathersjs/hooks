@@ -86,6 +86,30 @@ describe('functionHooks', () => {
     assert.strictEqual(res, undefined);
   });
 
+  it('deleting context.result, does not skip method call', async () => {
+    const hello = async (name: string) => {
+      return name;
+    };
+    const updateResult = async (ctx: HookContext, next: NextFunction) => {
+      ctx.result = 'Dave';
+
+      await next();
+    };
+    const deleteResult = async (ctx: HookContext, next: NextFunction) => {
+      delete ctx.result;
+
+      await next();
+    };
+
+    const fn = hooks(hello, middleware([
+      updateResult,
+      deleteResult
+    ]));
+    const res = await fn('There');
+
+    assert.strictEqual(res, 'There');
+  });
+
   it('can override context.result after', async () => {
     const updateResult = async (ctx: HookContext, next: NextFunction) => {
       await next();
