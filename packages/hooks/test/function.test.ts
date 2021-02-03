@@ -70,6 +70,22 @@ describe('functionHooks', () => {
     assert.strictEqual(res, 'Hello Dave');
   });
 
+  it('can set context.result to undefined, skips method call, returns undefined', async () => {
+    const hello = async (_name: string) => {
+      throw new Error('Should never get here');
+    };
+    const updateResult = async (ctx: HookContext, next: NextFunction) => {
+      ctx.result = undefined;
+
+      await next();
+    };
+
+    const fn = hooks(hello, middleware([ updateResult ]));
+    const res = await fn('There');
+
+    assert.strictEqual(res, undefined);
+  });
+
   it('can override context.result after', async () => {
     const updateResult = async (ctx: HookContext, next: NextFunction) => {
       await next();
