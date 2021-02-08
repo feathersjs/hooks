@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.6.2](https://github.com/feathersjs/hooks/compare/v0.6.1...v0.6.2) (2021-02-08)
+
+
+### Bug Fixes
+
+* **hooks:** Allow to set context.result to undefined ([#70](https://github.com/feathersjs/hooks/issues/70)) ([7b5807f](https://github.com/feathersjs/hooks/commit/7b5807f8a31b0e4859eaabdbcc8b49fc3b544548))
+
+
+
+
+
 ## [0.6.1](https://github.com/feathersjs/hooks/compare/v0.6.0...v0.6.1) (2020-12-11)
 
 
