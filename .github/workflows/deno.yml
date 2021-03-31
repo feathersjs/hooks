@@ -25,6 +25,14 @@ jobs:
         uses: denolib/setup-deno@c7d7968ad4a59c159a777f79adddad6872ee8d96
         with:
           deno-version: "v1.x"
-
+        
+      - name: Install Node.js 14
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14
+      
+      - name: Install Lerna and build tooling
+        run: npm install
+      
       - name: Run Tests
-        run: deno test -A --unstable
+        run: npm run test:deno
