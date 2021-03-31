@@ -63,11 +63,11 @@ yarn add @feathersjs/hooks
 
 ## Deno
 
-```js
-import { hooks } from 'https://unpkg.com/@feathersjs/hooks@latest/deno/index.ts';
-```
+feathersjs/hooks releases are published to [deno.land/x/hooks](https://deno.land/x/hooks):
 
-> __Note:__ You might want to replace `latest` with the actual version you want to use (e.g. `https://unpkg.com/@feathersjs/hooks@^0.2.0/deno/index.ts`)
+```js
+import { hooks } from 'https://deno.land/x/hooks@x.x.x/deno/index.ts';
+```
 
 ## Browser
 
