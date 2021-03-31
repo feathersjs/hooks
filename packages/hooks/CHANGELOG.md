@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.6.3](https://github.com/feathersjs/hooks/compare/v0.6.2...v0.6.3) (2021-03-31)
+
+
+### Bug Fixes
+
+* **hooks:** Add Deno tests and build, CI and fix build ([#73](https://github.com/feathersjs/hooks/issues/73)) ([44787cd](https://github.com/feathersjs/hooks/commit/44787cd2106c6d1ff4fe8bc5d59362e14427c468))
+
+
+
+
+
 ## [0.6.2](https://github.com/feathersjs/hooks/compare/v0.6.1...v0.6.2) (2021-02-08)
 
 
