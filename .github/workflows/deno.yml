@@ -19,7 +19,7 @@ jobs:
         with:
           node-version: 14
       
-      - name: Install Lerna and build tooling
+      - name: Install build tooling
         run: npm install
       
       - name: Run Tests
