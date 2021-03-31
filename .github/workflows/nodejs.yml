@@ -1,3 +1,4 @@
+
 name: CI
 
 on: [push, pull_request]
@@ -9,7 +10,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [10.x, 12.x, 13.x]
+        node-version: [13.x, 15.x]
 
     steps:
     - uses: actions/checkout@v2

@@ -1,6 +1,7 @@
 <h1>@feathersjs/hooks</h1>
 
-[![CI GitHub action](https://github.com/feathersjs/hooks/workflows/Node%20CI/badge.svg)](https://github.com/feathersjs/hooks/actions?query=workflow%3A%22Node+CI%22)
+[![Node CI](https://github.com/feathersjs/hooks/workflows/Node%20CI/badge.svg)](https://github.com/feathersjs/hooks/actions?query=workflow%3A%22Node+CI%22)
+[![Deno CI](https://github.com/feathersjs/hooks/actions/workflows/deno.yml/badge.svg)](https://github.com/feathersjs/hooks/actions/workflows/deno.yml)
 
 `@feathersjs/hooks` brings middleware to any async JavaScript or TypeScript function. It allows to create composable and reusable workflows that can add
 

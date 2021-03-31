@@ -3,10 +3,8 @@
 const path = require('path');
 const fs = require('fs');
 
-const moduleNames = [
-  './base', './compose', './decorator',
-  './function', './object'
-];
+const moduleNames = fs.readdirSync(path.join(__dirname, '..', 'src'))
+  .map(mod => `./${mod.replace('.ts', '')}`);
 
 const folder = path.join(__dirname, '..', 'src');
 const out = path.join(__dirname, '..', 'deno');
