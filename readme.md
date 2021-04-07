@@ -121,9 +121,6 @@ hooks(Hello, {
 (async () => {
   console.log(await sayHello('David'));
 
-  // The following would throw an error
-  // await sayHello('   ');
-
   const hi = new Hello();
 
   console.log(await hi.sayHi('Dave'));
@@ -166,8 +163,6 @@ class Hello {
   const hi = new Hello();
 
   console.log(await hi.sayHi('David'));
-  // The following would throw an error
-  // console.log(await hi.sayHi('  '));
 })();
 ```
 
