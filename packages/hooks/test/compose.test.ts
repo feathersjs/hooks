@@ -280,7 +280,7 @@ describe('Koa Compose', function () {
         return next();
       }
     ])({}).then(function () {
-      assert.equal(val, 3);
+      assert.strictEqual(val, 3);
     });
   });
 
@@ -289,20 +289,20 @@ describe('Koa Compose', function () {
 
     stack.push(async (_context: any, next: NextFunction) => {
       const val = await next();
-      assert.equal(val, 2);
+      assert.strictEqual(val, 2);
       return 1;
     });
 
     stack.push(async (_context: any, next: NextFunction) => {
       const val = await next();
-      assert.equal(val, 0);
+      assert.strictEqual(val, 0);
       return 2;
     });
 
     const next = async () => 0;
 
     return compose(stack)({}, next).then(function (val) {
-      assert.equal(val, 1);
+      assert.strictEqual(val, 1);
     });
   });
 
@@ -314,13 +314,13 @@ describe('Koa Compose', function () {
     middleware.push(fn1);
 
     for (const fn of middleware) {
-      assert.equal(fn, fn1);
+      assert.strictEqual(fn, fn1);
     }
 
     compose(middleware);
 
     for (const fn of middleware) {
-      assert.equal(fn, fn1);
+      assert.strictEqual(fn, fn1);
     }
   });
 
