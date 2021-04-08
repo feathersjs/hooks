@@ -18,7 +18,7 @@ describe('functionHooks', () => {
     const fn = hooks(hello, []);
 
     assert.notDeepEqual(fn, hello);
-    assert.ok(getManager(fn) !== null);
+    assert.notStrictEqual(getManager(fn), null);
   });
 
   it('throws an error with non function', () => {
