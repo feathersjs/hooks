@@ -21,6 +21,13 @@ describe('functionHooks', () => {
     assert.ok(getManager(fn) !== null);
   });
 
+  it('returns a new function, without hooks', () => {
+    const fn = hooks(hello);
+
+    assert.notDeepEqual(fn, hello);
+    assert.ok(getManager(fn) !== null);
+  });
+
   it('throws an error with non function', () => {
     assert.throws(() => functionHooks({}, middleware([])));
   })
