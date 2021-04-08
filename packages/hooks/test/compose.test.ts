@@ -103,7 +103,7 @@ describe('Koa Compose', function () {
     compose(stack)({});
 
     for (const next of arr) {
-      assert(isPromise(next), 'one of the functions next is not a Promise');
+      assert.ok(isPromise(next), 'one of the functions next is not a Promise');
     }
   });
 
@@ -128,7 +128,7 @@ describe('Koa Compose', function () {
     });
 
     await compose(stack)({});
-    assert(called);
+    assert.ok(called);
   });
 
   it('should reject on errors in middleware', () => {
@@ -209,7 +209,7 @@ describe('Koa Compose', function () {
     return compose([])({}, async () => {
       called = true;
     }).then(function () {
-      assert(called);
+      assert.ok(called);
     });
   });
 
@@ -258,7 +258,7 @@ describe('Koa Compose', function () {
     ])({}).then(() => {
       throw new Error('boom');
     }, (err) => {
-      assert(/multiple times/.test(err.message));
+      assert.ok(/multiple times/.test(err.message));
     });
   });
 
