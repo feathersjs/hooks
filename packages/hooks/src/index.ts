@@ -56,7 +56,7 @@ export function middleware (mw?: Middleware[], options?: MiddlewareOptions) {
  * (`middleware([]).params()` etc.)
  */
 export function hooks<F, T = any> (
-    fn: F&Function,
+    fn: F&(() => void),
     manager?: HookManager
 ): WrappedFunction<F, T>;
 
