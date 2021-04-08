@@ -1,5 +1,5 @@
 // Adapted from koa-compose (https://github.com/koajs/compose)
-import { strict as assert } from 'assert';
+import * as assert from 'assert';
 import { compose, NextFunction } from '../src';
 
 function wait (ms: number) {

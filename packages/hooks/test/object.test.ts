@@ -1,4 +1,4 @@
-import { strict as assert } from 'assert';
+import * as assert from 'assert';
 import { hooks, middleware, HookContext, NextFunction } from '../src';
 
 interface HookableObject {
