@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.6.4](https://github.com/feathersjs/hooks/compare/v0.6.3...v0.6.4) (2021-04-11)
+
+
+### Bug Fixes
+
+* allow to hooks a function without middleware ([#77](https://github.com/feathersjs/hooks/issues/77)) ([38b44c3](https://github.com/feathersjs/hooks/commit/38b44c3ba1bd7753cdb81492b517e4fd3a6af50e))
+* conserve fn.length and fn.name ([#79](https://github.com/feathersjs/hooks/issues/79)) ([d9bc9af](https://github.com/feathersjs/hooks/commit/d9bc9af689f15398168ce4493fcfb23af0f3ef05))
+
+
+
+
+
 ## [0.6.3](https://github.com/feathersjs/hooks/compare/v0.6.2...v0.6.3) (2021-03-31)
 
 
