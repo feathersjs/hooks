@@ -25,6 +25,7 @@ export type MiddlewareOptions = {
 /**
  * Initializes a hook settings object with the given middleware.
  * @param mw The list of middleware
+ * @param options Middleware options (params, default, props)
  */
 export function middleware (mw?: Middleware[], options?: MiddlewareOptions) {
   const manager = new HookManager().middleware(mw);
@@ -55,7 +56,8 @@ export function middleware (mw?: Middleware[], options?: MiddlewareOptions) {
  * (`middleware([]).params()` etc.)
  */
 export function hooks<F, T = any> (
-  fn: F, manager: HookManager
+    fn: F&(() => void),
+    manager?: HookManager
 ): WrappedFunction<F, T>;
 
 /**
@@ -68,17 +70,17 @@ export function hooks<O> (obj: O|(new (...args: any[]) => O), hookMap: HookMap<O
 
 /**
  * Decorate a class method with hooks.
- * @param _manager The hooks settings
+ * @param manager The hooks settings
  */
 export function hooks<T = any> (
-  _manager?: HookOptions
+  manager?: HookOptions
 ): any;
 
 // Fallthrough to actual implementation
 export function hooks (...args: any[]) {
   const [ target, _hooks ] = args;
 
-  if (typeof target === 'function' && (_hooks instanceof HookManager || Array.isArray(_hooks))) {
+  if (typeof target === 'function' && (_hooks instanceof HookManager || Array.isArray(_hooks) || args.length === 1)) {
     return functionHooks(target, _hooks);
   }
 
