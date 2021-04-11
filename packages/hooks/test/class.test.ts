@@ -1,4 +1,4 @@
-import { strict as assert } from 'assert';
+import * as assert from 'assert';
 import { hooks, middleware, HookContext, NextFunction } from '../src';
 
 interface Dummy {
@@ -91,7 +91,7 @@ describe('class objectHooks', () => {
     hooks(DummyClass, {
       sayHi: middleware([
         async (ctx, next) => {
-          assert.equal(ctx.name, 'Dave');
+          assert.strictEqual(ctx.name, 'Dave');
 
           ctx.name = 'Changed';
 
@@ -106,8 +106,8 @@ describe('class objectHooks', () => {
     hooks(OtherDummy, {
       sayHi: middleware([
         async (ctx, next) => {
-          assert.equal(ctx.name, 'Changed');
-          assert.equal(ctx.gna, 42);
+          assert.strictEqual(ctx.name, 'Changed');
+          assert.strictEqual(ctx.gna, 42);
 
           await next();
         }
@@ -119,15 +119,15 @@ describe('class objectHooks', () => {
     hooks(instance, {
       sayHi: middleware([
         async (ctx, next) => {
-          assert.equal(ctx.name, 'Changed');
-          assert.equal(ctx.gna, 42);
-          assert.equal(ctx.app, 'ok');
+          assert.strictEqual(ctx.name, 'Changed');
+          assert.strictEqual(ctx.gna, 42);
+          assert.strictEqual(ctx.app, 'ok');
 
           await next();
         }
       ]).props({ app: 'ok' })
     });
 
-    assert.equal(await instance.sayHi('Dave'), 'Hi Changed');
+    assert.strictEqual(await instance.sayHi('Dave'), 'Hi Changed');
   });
 });

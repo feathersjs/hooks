@@ -1,4 +1,4 @@
-import { strict as assert } from 'assert';
+import * as assert from 'assert';
 import { hooks, HookContext, NextFunction, middleware } from '../src';
 
 describe('hookDecorator', () => {
@@ -26,7 +26,7 @@ describe('hookDecorator', () => {
     class DummyClass extends TopLevel {
       @hooks(middleware([
         async (ctx: HookContext, next: NextFunction) => {
-          assert.equal(ctx.method, 'sayHi');
+          assert.strictEqual(ctx.method, 'sayHi');
           assert.deepEqual(ctx.arguments, [expectedName]);
           assert.deepEqual(ctx.name, expectedName);
 

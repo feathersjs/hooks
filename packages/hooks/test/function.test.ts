@@ -1,4 +1,4 @@
-import { strict as assert } from 'assert';
+import * as assert from 'assert';
 import {
   hooks,
   middleware,
@@ -18,7 +18,7 @@ describe('functionHooks', () => {
     const fn = hooks(hello, []);
 
     assert.notDeepEqual(fn, hello);
-    assert.ok(getManager(fn) !== null);
+    assert.notStrictEqual(getManager(fn), null);
   });
 
   it('throws an error with non function', () => {
@@ -49,9 +49,9 @@ describe('functionHooks', () => {
       }
     ]));
 
-    assert.equal(typeof fn.original, 'function');
+    assert.strictEqual(typeof fn.original, 'function');
 
-    assert.equal(await fn.original('Dave'), 'Hello Dave');
+    assert.strictEqual(await fn.original('Dave'), 'Hello Dave');
   });
 
   it('can override context.result before, skips method call', async () => {
@@ -213,13 +213,13 @@ describe('functionHooks', () => {
 
     const result = await second('Dave');
 
-    assert.equal(result, 'Hello Dave test value');
+    assert.strictEqual(result, 'Hello Dave test value');
   });
 
   it('creates context with params and converts to arguments', async () => {
     const fn = hooks(hello, middleware([
       async (ctx, next) => {
-        assert.equal(ctx.name, 'Dave');
+        assert.strictEqual(ctx.name, 'Dave');
 
         ctx.name = 'Changed';
 
@@ -227,14 +227,14 @@ describe('functionHooks', () => {
       }
     ]).params('name'));
 
-    assert.equal(await fn('Dave'), 'Hello Changed');
+    assert.strictEqual(await fn('Dave'), 'Hello Changed');
   });
 
   it('assigns props to context', async () => {
     const fn = hooks(hello, middleware([
       async (ctx, next) => {
-        assert.equal(ctx.name, 'Dave');
-        assert.equal(ctx.dev, true);
+        assert.strictEqual(ctx.name, 'Dave');
+        assert.strictEqual(ctx.dev, true);
 
         ctx.name = 'Changed';
 
@@ -242,14 +242,14 @@ describe('functionHooks', () => {
       }
     ]).params('name').props({ dev: true }));
 
-    assert.equal(await fn('Dave'), 'Hello Changed');
+    assert.strictEqual(await fn('Dave'), 'Hello Changed');
   });
 
   it('assigns props to context by options', async () => {
     const fn = hooks(hello, middleware([
       async (ctx, next) => {
-        assert.equal(ctx.name, 'Dave');
-        assert.equal(ctx.dev, true);
+        assert.strictEqual(ctx.name, 'Dave');
+        assert.strictEqual(ctx.dev, true);
 
         ctx.name = 'Changed';
 
@@ -260,7 +260,7 @@ describe('functionHooks', () => {
       props: { dev: true }
     }));
 
-    assert.equal(await fn('Dave'), 'Hello Changed');
+    assert.strictEqual(await fn('Dave'), 'Hello Changed');
   });
 
   it('ctx.arguments is configurable with named params', async () => {
@@ -268,7 +268,7 @@ describe('functionHooks', () => {
       ctx.arguments[0] = 'Changed';
       ctx.arguments.push('no');
 
-      assert.equal(ctx.name, ctx.arguments[0]);
+      assert.strictEqual(ctx.name, ctx.arguments[0]);
 
       await next();
     };
@@ -278,7 +278,7 @@ describe('functionHooks', () => {
     const customContext = fn.createContext();
     const resultContext = await fn('Daffl', {}, customContext);
 
-    assert.equal(resultContext, customContext);
+    assert.strictEqual(resultContext, customContext);
     assert.deepEqual(resultContext, fn.createContext({
       arguments: ['Changed', {}, 'no'],
       name: 'Changed',
@@ -290,8 +290,8 @@ describe('functionHooks', () => {
     const message = 'Custom message';
     const fn = hooks(hello, middleware([
       async (ctx, next) => {
-        assert.equal(ctx.name, 'Dave');
-        assert.equal(ctx.message, message);
+        assert.strictEqual(ctx.name, 'Dave');
+        assert.strictEqual(ctx.message, message);
 
         ctx.name = 'Changed';
         await next();
@@ -301,7 +301,7 @@ describe('functionHooks', () => {
     const customContext = fn.createContext({ message });
     const resultContext: HookContext = await fn('Dave', {}, customContext);
 
-    assert.equal(resultContext, customContext);
+    assert.strictEqual(resultContext, customContext);
     assert.deepEqual(resultContext, fn.createContext({
       arguments: ['Changed', {}],
       message: 'Custom message',
@@ -329,8 +329,8 @@ describe('functionHooks', () => {
 
     const result = await exclamation('Bertho');
 
-    assert.equal(result, 'Hi Bertho!');
-    assert.equal(called, 1);
+    assert.strictEqual(result, 'Hi Bertho!');
+    assert.strictEqual(called, 1);
   });
 
   it('conserves method properties', async () => {
@@ -347,8 +347,8 @@ describe('functionHooks', () => {
 
     const result = await sayHi('Bertho');
 
-    assert.equal(result, 'Hi Bertho!');
-    assert.equal((sayHi as any)[TEST], (hello as any)[TEST]);
+    assert.strictEqual(result, 'Hi Bertho!');
+    assert.strictEqual((sayHi as any)[TEST], (hello as any)[TEST]);
   });
 
   it('works with array as middleware', async () => {
@@ -365,8 +365,8 @@ describe('functionHooks', () => {
 
     const result = await sayHi('Bertho');
 
-    assert.equal(result, 'Hi Bertho!');
-    assert.equal((sayHi as any)[TEST], (hello as any)[TEST]);
+    assert.strictEqual(result, 'Hi Bertho!');
+    assert.strictEqual((sayHi as any)[TEST], (hello as any)[TEST]);
   });
 
   it('context has own properties', async () => {
@@ -401,7 +401,7 @@ describe('functionHooks', () => {
       })
     );
 
-    assert.equal(await fn('Dave'), 'Hello Dave');
-    assert.equal(await fn(), 'Hello Bertho');
+    assert.strictEqual(await fn('Dave'), 'Hello Dave');
+    assert.strictEqual(await fn(), 'Hello Bertho');
   });
 });

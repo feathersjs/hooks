@@ -1,4 +1,4 @@
-import { strict as assert } from 'assert';
+import * as assert from 'assert';
 import { hooks, middleware, HookContext, NextFunction } from '../src';
 
 interface HookableObject {
@@ -27,7 +27,7 @@ describe('objectHooks', () => {
   it('hooks object with hook methods, sets method name', async () => {
     const hookedObj = hooks(obj, {
       sayHi: middleware([async (ctx: HookContext, next: NextFunction) => {
-        assert.equal(ctx.method, 'sayHi');
+        assert.strictEqual(ctx.method, 'sayHi');
         assert.deepEqual(ctx, new (obj.sayHi as any).Context({
           arguments: [ 'David' ],
           method: 'sayHi',
@@ -129,6 +129,6 @@ describe('objectHooks', () => {
       }])
     });
 
-    assert.equal(await obj.sayHi('Dave'), 'Hi Dave?!');
+    assert.strictEqual(await obj.sayHi('Dave'), 'Hi Dave?!');
   });
 });

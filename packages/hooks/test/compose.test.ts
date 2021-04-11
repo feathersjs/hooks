@@ -1,5 +1,5 @@
 // Adapted from koa-compose (https://github.com/koajs/compose)
-import { strict as assert } from 'assert';
+import * as assert from 'assert';
 import { compose, NextFunction } from '../src';
 
 function wait (ms: number) {
@@ -103,7 +103,7 @@ describe('Koa Compose', function () {
     compose(stack)({});
 
     for (const next of arr) {
-      assert(isPromise(next), 'one of the functions next is not a Promise');
+      assert.ok(isPromise(next), 'one of the functions next is not a Promise');
     }
   });
 
@@ -128,7 +128,7 @@ describe('Koa Compose', function () {
     });
 
     await compose(stack)({});
-    assert(called);
+    assert.ok(called);
   });
 
   it('should reject on errors in middleware', () => {
@@ -209,7 +209,7 @@ describe('Koa Compose', function () {
     return compose([])({}, async () => {
       called = true;
     }).then(function () {
-      assert(called);
+      assert.ok(called);
     });
   });
 
@@ -258,7 +258,7 @@ describe('Koa Compose', function () {
     ])({}).then(() => {
       throw new Error('boom');
     }, (err) => {
-      assert(/multiple times/.test(err.message));
+      assert.ok(/multiple times/.test(err.message));
     });
   });
 
@@ -280,7 +280,7 @@ describe('Koa Compose', function () {
         return next();
       }
     ])({}).then(function () {
-      assert.equal(val, 3);
+      assert.strictEqual(val, 3);
     });
   });
 
@@ -289,20 +289,20 @@ describe('Koa Compose', function () {
 
     stack.push(async (_context: any, next: NextFunction) => {
       const val = await next();
-      assert.equal(val, 2);
+      assert.strictEqual(val, 2);
       return 1;
     });
 
     stack.push(async (_context: any, next: NextFunction) => {
       const val = await next();
-      assert.equal(val, 0);
+      assert.strictEqual(val, 0);
       return 2;
     });
 
     const next = async () => 0;
 
     return compose(stack)({}, next).then(function (val) {
-      assert.equal(val, 1);
+      assert.strictEqual(val, 1);
     });
   });
 
@@ -314,13 +314,13 @@ describe('Koa Compose', function () {
     middleware.push(fn1);
 
     for (const fn of middleware) {
-      assert.equal(fn, fn1);
+      assert.strictEqual(fn, fn1);
     }
 
     compose(middleware);
 
     for (const fn of middleware) {
-      assert.equal(fn, fn1);
+      assert.strictEqual(fn, fn1);
     }
   });
 
