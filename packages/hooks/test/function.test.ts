@@ -28,6 +28,13 @@ describe('functionHooks', () => {
     assert.ok(getManager(fn) !== null);
   });
 
+  it('conserve name and length properties', () => {
+    const fn = hooks(hello, []);
+
+    assert.strictEqual(fn.length, hello.length);
+    assert.strictEqual(fn.name, hello.name);
+  });
+
   it('throws an error with non function', () => {
     assert.throws(() => functionHooks({}, middleware([])));
   })

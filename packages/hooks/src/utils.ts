@@ -45,3 +45,19 @@ export function copyProperties <F> (target: F, ...originals: any[]) {
 
   return target;
 }
+
+export function copyFnProperties <F> (target: F, original : any) {
+  const internalProps = ['name', 'length'];
+
+  try {
+    for (const prop of internalProps) {
+      const value = original[prop];
+
+      Object.defineProperty(target, prop, { value });
+    }
+  } catch (e) {
+    // Avoid IE error
+  }
+
+  return target;
+}

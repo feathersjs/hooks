@@ -2,7 +2,7 @@ import { compose, Middleware } from './compose';
 import {
   HookContext, setManager, HookContextData, HookOptions, convertOptions, setMiddleware
 } from './base';
-import { copyProperties } from './utils';
+import { copyFnProperties, copyProperties } from './utils';
 
 export function getOriginal (fn: any): any {
   return typeof fn.original === 'function' ? getOriginal(fn.original) : fn;
@@ -51,6 +51,7 @@ export function functionHooks <F> (fn: F, managerOrMiddleware: HookOptions) {
     return compose(hookChain).call(this, context);
   };
 
+  copyFnProperties(wrapper, fn);
   copyProperties(wrapper, fn);
   setManager(wrapper, manager);
 
