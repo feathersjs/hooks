@@ -37,7 +37,7 @@ export function copyProperties <F> (target: F, ...originals: any[]) {
     for (const prop of originalProps) {
       const propDescriptor = Object.getOwnPropertyDescriptor(original, prop);
 
-      if (!target.hasOwnProperty(prop)) {
+      if (propDescriptor && !Object.prototype.hasOwnProperty.call(target, prop)) {
         Object.defineProperty(target, prop, propDescriptor);
       }
     }

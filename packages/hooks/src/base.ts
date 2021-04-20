@@ -8,11 +8,8 @@ export type HookContextData = { [key: string]: any };
 /**
  * The base hook context.
  */
-export class HookContext<T = any, C = any> {
-  result?: T;
-  method?: string;
-  self: C;
-  arguments: any[];
+export class BaseHookContext<C = any> {
+  self?: C;
   [key: string]: any;
 
   constructor (data: HookContextData = {}) {
@@ -20,7 +17,13 @@ export class HookContext<T = any, C = any> {
   }
 }
 
-export type HookContextConstructor = new (data?: { [key: string]: any }) => HookContext;
+export interface HookContext<T = any, C = any> extends BaseHookContext<C> {
+  result?: T;
+  method?: string;
+  arguments: any[];
+}
+
+export type HookContextConstructor = new (data?: { [key: string]: any }) => BaseHookContext;
 
 export type HookDefaultsInitializer = (self?: any, args?: any[], context?: HookContext) => HookContextData;
 
@@ -29,9 +32,9 @@ export class HookManager {
   _params: string[]|null = null;
   _middleware: Middleware[]|null = null;
   _props: HookContextData|null = null;
-  _defaults: HookDefaultsInitializer;
+  _defaults?: HookDefaultsInitializer;
 
-  parent (parent: this) {
+  parent (parent: this|null) {
     this._parent = parent;
 
     return this;
@@ -61,7 +64,7 @@ export class HookManager {
       return otherMiddleware.concat(middleware);
     }
 
-    return otherMiddleware || middleware;
+    return otherMiddleware || middleware || [];
   }
 
   props (props: HookContextData) {
@@ -74,14 +77,14 @@ export class HookManager {
     return this;
   }
 
-  getProps (): HookContextData {
+  getProps (): HookContextData|null {
     const previous = this._parent?.getProps();
 
     if (previous && this._props) {
       return copyProperties({}, previous, this._props);
     }
 
-    return previous || this._props;
+    return previous || this._props || null;
   }
 
   params (...params: string[]) {
@@ -90,7 +93,7 @@ export class HookManager {
     return this;
   }
 
-  getParams (): string[] {
+  getParams (): string[]|null {
     const previous = this._parent?.getParams();
 
     if (previous && this._params) {
@@ -106,7 +109,7 @@ export class HookManager {
     return this;
   }
 
-  getDefaults (self: any, args: any[], context: HookContext): HookContextData {
+  getDefaults (self: any, args: any[], context: HookContext): HookContextData|null {
     const defaults = typeof this._defaults === 'function' ? this._defaults(self, args, context) : null;
     const previous = this._parent?.getDefaults(self, args, context);
 
@@ -117,7 +120,7 @@ export class HookManager {
     return previous || defaults;
   }
 
-  getContextClass (Base: HookContextConstructor = HookContext): HookContextConstructor {
+  getContextClass (Base: HookContextConstructor = BaseHookContext): HookContextConstructor {
     const ContextClass = class ContextClass extends Base {
       constructor (data: any) {
         super(data);

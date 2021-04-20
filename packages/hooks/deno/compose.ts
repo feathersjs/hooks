@@ -27,7 +27,7 @@ export function compose<T = any> (middleware: Middleware<T>[]) {
 
       index = i;
 
-      let fn = middleware[i];
+      let fn: Middleware|undefined = middleware[i];
 
       if (i === middleware.length) {
         fn = next;
