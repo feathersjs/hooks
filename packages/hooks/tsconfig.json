@@ -5,7 +5,6 @@
   ],
   "compilerOptions": {
     "outDir": "lib",
-    "experimentalDecorators": true,
-    "strictNullChecks": false
+    "experimentalDecorators": true
   }
 }

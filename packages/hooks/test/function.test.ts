@@ -4,6 +4,7 @@ import {
   middleware,
   getManager,
   HookContext,
+  BaseHookContext,
   NextFunction,
   setMiddleware,
   functionHooks
@@ -41,7 +42,7 @@ describe('functionHooks', () => {
 
   it('can override arguments, has context', async () => {
     const addYou = async (ctx: HookContext, next: NextFunction) => {
-      assert.ok(ctx instanceof HookContext);
+      assert.ok(ctx instanceof BaseHookContext);
       assert.deepStrictEqual(ctx.arguments, [ 'There' ]);
       ctx.arguments[0] += ' You';
 
@@ -202,8 +203,13 @@ describe('functionHooks', () => {
     };
     const first = hooks(hello, middleware([ one, two ]));
     const second = hooks(first, middleware([ three ]));
+    const mngr = getManager(second);
 
-    assert.deepEqual(getManager(second).getMiddleware(), [ one, two, three ]);
+    if (mngr === null) {
+      assert.ok(false, 'There should be a manager');
+    } else {
+      assert.deepEqual(mngr.getMiddleware(), [ one, two, three ]);
+    }
 
     const result = await second('Dave');
 
@@ -388,8 +394,13 @@ describe('functionHooks', () => {
 
     const customContext = fn.createContext({ message: 'Hi !' });
     const resultContext: HookContext = await fn('Dave', {}, customContext);
+    const keys = Object.keys(resultContext);
 
-    assert.deepEqual(Object.keys(resultContext), ['message', 'name', 'arguments', 'result']);
+    assert.ok(keys.includes('self'));
+    assert.ok(keys.includes('message'));
+    assert.ok(keys.includes('name'));
+    assert.ok(keys.includes('arguments'));
+    assert.ok(keys.includes('result'));
   });
 
   it('same params and props throw an error', async () => {

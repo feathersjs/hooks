@@ -37,10 +37,26 @@ export function copyProperties <F> (target: F, ...originals: any[]) {
     for (const prop of originalProps) {
       const propDescriptor = Object.getOwnPropertyDescriptor(original, prop);
 
-      if (!target.hasOwnProperty(prop)) {
+      if (propDescriptor && !Object.prototype.hasOwnProperty.call(target, prop)) {
         Object.defineProperty(target, prop, propDescriptor);
       }
     }
+  }
+
+  return target;
+}
+
+export function copyFnProperties <F> (target: F, original : any) {
+  const internalProps = ['name', 'length'];
+
+  try {
+    for (const prop of internalProps) {
+      const value = original[prop];
+
+      Object.defineProperty(target, prop, { value });
+    }
+  } catch (e) {
+    // Avoid IE error
   }
 
   return target;

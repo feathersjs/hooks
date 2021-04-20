@@ -22,7 +22,7 @@
     /* Strict Type-Checking Options */
     "strict": true,                           /* Enable all strict type-checking options. */
     // "noImplicitAny": true,                 /* Raise error on expressions and declarations with an implied 'any' type. */
-    "strictNullChecks": false,              /* Enable strict null checks. */
+    "strictNullChecks": true,              /* Enable strict null checks. */
     // "strictFunctionTypes": true,           /* Enable strict checking of function types. */
     // "strictPropertyInitialization": true,  /* Enable strict checking of property initialization in classes. */
     // "noImplicitThis": true,                /* Raise error on 'this' expressions with an implied 'any' type. */
@@ -32,6 +32,7 @@
     "noUnusedLocals": true,                /* Report errors on unused locals. */
     "noUnusedParameters": true,            /* Report errors on unused parameters. */
     "noImplicitReturns": true,             /* Report error when not all code paths in function return a value. */
+    "useDefineForClassFields": true,
     // "noFallthroughCasesInSwitch": true,    /* Report errors for fallthrough cases in switch statement. */
 
     /* Module Resolution Options */
