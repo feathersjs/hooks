@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.6.5](https://github.com/feathersjs/hooks/compare/v0.6.4...v0.6.5) (2021-04-20)
+
+
+### Bug Fixes
+
+* **typescript:** Tighten up TypeScript settings to be ECMAScript and Deno compatible ([#81](https://github.com/feathersjs/hooks/issues/81)) ([28fe875](https://github.com/feathersjs/hooks/commit/28fe8758b4764981473830db4a0013dd1beca489))
+
+
+
+
+
 ## [0.6.4](https://github.com/feathersjs/hooks/compare/v0.6.3...v0.6.4) (2021-04-11)
 
 
