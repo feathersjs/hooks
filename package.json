@@ -11,6 +11,7 @@
   },
   "devDependencies": {
     "lerna": "^4.0.0",
+    "npm-check-updates": "^11.5.11",
     "nyc": "^15.1.0",
     "tslint": "^6.1.3"
   }
