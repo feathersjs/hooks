@@ -6,10 +6,12 @@
     "publish": "lerna publish && git push origin master",
     "lint": "tslint 'packages/**/src/*.ts' 'packages/**/test/*.ts' -c tslint.json --fix",
     "test": "npm run lint && nyc lerna run test",
-    "test:deno": "lerna run test:deno"
+    "test:deno": "lerna run test:deno",
+    "update-dependencies": "ncu -u && lerna exec -- ncu -u"
   },
   "devDependencies": {
     "lerna": "^4.0.0",
+    "npm-check-updates": "^11.5.11",
     "nyc": "^15.1.0",
     "tslint": "^6.1.3"
   }
