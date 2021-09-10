@@ -107,7 +107,7 @@ describe('objectHooks', () => {
         }])
       });
       assert.fail('Should never get here');
-    } catch (error) {
+    } catch (error: any) {
       assert.strictEqual(error.message, `Can not apply hooks. 'test' is not a function`);
     }
   });
