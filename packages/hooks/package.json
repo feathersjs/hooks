@@ -55,15 +55,15 @@
     "access": "public"
   },
   "devDependencies": {
-    "@types/chai": "^4.2.21",
+    "@types/chai": "^4.2.22",
     "@types/mocha": "^9.0.0",
-    "@types/node": "^16.7.10",
-    "mocha": "^9.1.1",
+    "@types/node": "^16.10.2",
+    "mocha": "^9.1.2",
     "shx": "^0.3.3",
-    "ts-loader": "^9.2.5",
+    "ts-loader": "^9.2.6",
     "ts-node": "^10.2.1",
-    "typescript": "^4.4.2",
-    "webpack": "^5.51.1",
+    "typescript": "^4.4.3",
+    "webpack": "^5.55.1",
     "webpack-cli": "^4.8.0"
   }
 }
