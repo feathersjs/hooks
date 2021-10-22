@@ -1,4 +1,4 @@
-import { Middleware } from './compose';
+import { AsyncMiddleware } from './compose';
 import {
   HookManager, HookContextData, HookContext, HookContextConstructor, HookOptions
 } from './base';
@@ -7,6 +7,7 @@ import { functionHooks, hookDecorator, objectHooks, HookMap } from './hooks';
 export * from './hooks';
 export * from './compose';
 export * from './base';
+export * from './regular';
 
 export interface WrapperAddon<F> {
   original: F;
@@ -27,7 +28,7 @@ export type MiddlewareOptions = {
  * @param mw The list of middleware
  * @param options Middleware options (params, default, props)
  */
-export function middleware (mw?: Middleware[], options?: MiddlewareOptions) {
+export function middleware (mw?: AsyncMiddleware[], options?: MiddlewareOptions) {
   const manager = new HookManager().middleware(mw);
 
   if (options) {
@@ -66,7 +67,7 @@ export function hooks<F, T = any> (
  * @param hookMap A map of middleware settings where the
  * key is the method name.
  */
-export function hooks<O> (obj: O|(new (...args: any[]) => O), hookMap: HookMap<O>|Middleware[]): O;
+export function hooks<O> (obj: O|(new (...args: any[]) => O), hookMap: HookMap<O>|AsyncMiddleware[]): O;
 
 /**
  * Decorate a class method with hooks.
