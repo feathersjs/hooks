@@ -1,10 +1,10 @@
-import * as assert from "assert";
-import { hooks, collect, HookContext, NextFunction, middleware } from "../src";
+import * as assert from 'assert';
+import { hooks, collect, HookContext, NextFunction, middleware } from '../src';
 
-describe("collect utility for regular hooks", () => {
-  it("collects hooks in order", async () => {
+describe('collect utility for regular hooks', () => {
+  it('collects hooks in order', async () => {
     class DummyClass {
-      async create(data: any) {
+      async create (data: any) {
         data.id = 1;
         return data;
       }
@@ -14,105 +14,125 @@ describe("collect utility for regular hooks", () => {
         collect({
           before: [
             (ctx: any) => {
-              ctx.data.log.push("collect-1 : before : 1");
+              ctx.data.log.push('collect-1 : before : 1');
             },
             (ctx: any) => {
-              ctx.data.log.push("collect-1 : before : 2");
-            },
+              ctx.data.log.push('collect-1 : before : 2');
+            }
           ],
           after: [
             (ctx: any) => {
-              ctx.data.log.push("collect-1 : after : 1");
+              ctx.data.log.push('collect-1 : after : 1');
             },
             (ctx: any) => {
-              ctx.data.log.push("collect-1 : after : 2");
-            },
+              ctx.data.log.push('collect-1 : after : 2');
+            }
           ],
-          error: [],
+          error: []
         }),
         async (ctx: HookContext, next: NextFunction) => {
-          ctx.data.log.push("async : before");
+          ctx.data.log.push('async : before');
           await next();
-          ctx.data.log.push("async : after");
+          ctx.data.log.push('async : after');
         },
         collect({
           before: [
             (ctx: any) => {
-              ctx.data.log.push("collect-2 : before:3");
+              ctx.data.log.push('collect-2 : before : 3');
             },
             (ctx: any) => {
-              ctx.data.log.push("before : 4");
-            },
+              ctx.data.log.push('collect-2 : before : 4');
+            }
           ],
           after: [
             (ctx: any) => {
-              ctx.data.log.push("collect-2 : after : 3");
+              ctx.data.log.push('collect-2 : after : 3');
             },
             (ctx: any) => {
-              ctx.data.log.push("collect-2 : after : 4");
-            },
+              ctx.data.log.push('collect-2 : after : 4');
+            }
           ],
-          error: [],
-        }),
-      ]).params("data"),
+          error: []
+        })
+      ]).params('data')
     });
 
     const service = new DummyClass();
-    const value = await service.create({ name: "David", log: [] });
+    const value = await service.create({ name: 'David', log: [] });
 
     assert.deepStrictEqual(value.log, [
-      "collect-1 : before : 1",
-      "collect-1 : before : 2",
-      "async : before",
-      "collect-2 : before : 3",
-      "collect-2 : before : 4",
-      "collect-2 : after : 3",
-      "collect-2 : after : 4",
-      "async : after",
-      "collect-1 : after : 1",
-      "collect-1 : after : 2",
+      'collect-1 : before : 1',
+      'collect-1 : before : 2',
+      'async : before',
+      'collect-2 : before : 3',
+      'collect-2 : before : 4',
+      'collect-2 : after : 3',
+      'collect-2 : after : 4',
+      'async : after',
+      'collect-1 : after : 1',
+      'collect-1 : after : 2'
     ]);
   });
 
-  it.only("error hooks", async () => {
+  it('error hooks', async () => {
     class DummyClass {
-      async create(data: any) {
-        data.id = 1;
-        return data;
+      async create (name: string) {
+        if (name !== 'after') {
+          throw new Error(`Error in method with ${name}`);
+        }
       }
     }
+
     const collection = collect({
       before: [
-        (ctx) => {
-          console.log(ctx);
-          throw new Error("in before hook");
-        },
+        ctx => {
+          if (ctx.arguments[0] === 'before') {
+            throw new Error('in before hook');
+          }
+        }
       ],
       after: [
-        () => {
-          throw new Error("in after hook");
-        },
+        ctx => {
+          if (ctx.arguments[0] === 'after') {
+            throw new Error('in after hook');
+          }
+        }
       ],
       error: [
-        (ctx: any) => {
-          console.log(ctx);
-        },
-      ],
+        ctx => {
+          if (ctx.arguments[0] === 'error') {
+            throw new Error('in error hook');
+          }
+
+          if (ctx.arguments[0] === 'result') {
+            ctx.result = 'result from error hook';
+          }
+        }
+      ]
     });
+
     hooks(DummyClass, {
-      create: middleware([collection]).params("data"),
+      create: middleware([collection]).params('data')
     });
 
     const service = new DummyClass();
-    console.log("service");
 
-    return service
-      .create({ log: [] })
-      .then((result) => {
-        console.log(result);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    await assert.rejects(() => service.create('test'), {
+      message: 'Error in method with test'
+    });
+
+    await assert.rejects(() => service.create('before'), {
+      message: 'in before hook'
+    });
+
+    await assert.rejects(() => service.create('after'), {
+      message: 'in after hook'
+    });
+
+    await assert.rejects(() => service.create('error'), {
+      message: 'in error hook'
+    });
+
+    assert.strictEqual(await service.create('result'), 'result from error hook');
   });
 });

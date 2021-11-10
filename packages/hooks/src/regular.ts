@@ -1,6 +1,7 @@
 import { compose } from './compose';
+import { HookContext } from './base';
 
-export type RegularMiddleware<T = any> = (context: T) => Promise<any> | any;
+export type RegularMiddleware<T extends HookContext = any> = (context: T) => Promise<any> | any;
 
 export interface RegularHookMap {
   before?: RegularMiddleware[],
@@ -75,5 +76,5 @@ export function collect ({ before = [], after = [], error = [] }: RegularHookMap
   const afterHooks = [...after].reverse().map(fromAfterHook);
   const errorHooks: any = fromErrorHooks(error);
 
-  return compose([...afterHooks, ...beforeHooks, errorHooks]);
+  return compose([errorHooks, ...afterHooks, ...beforeHooks]);
 }
