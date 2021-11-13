@@ -1,4 +1,4 @@
-import { compose, Middleware } from './compose.ts';
+import { compose, AsyncMiddleware } from './compose.ts';
 import {
   HookContext, setManager, HookContextData, HookOptions, convertOptions, setMiddleware
 } from './base.ts';
@@ -23,7 +23,7 @@ export function functionHooks <F> (fn: F, managerOrMiddleware: HookOptions) {
     // Initialize the context
     const context = manager.initializeContext(this, args, base);
     // Assemble the hook chain
-    const hookChain: Middleware[] = [
+    const hookChain: AsyncMiddleware[] = [
       // Return `ctx.result` or the context
       (ctx, next) => next().then(() => returnContext ? ctx : ctx.result)
     ];
@@ -68,7 +68,7 @@ export type HookMap<O = any> = {
   [L in keyof O]?: HookOptions;
 }
 
-export function objectHooks (_obj: any, hooks: HookMap|Middleware[]) {
+export function objectHooks (_obj: any, hooks: HookMap|AsyncMiddleware[]) {
   const obj = typeof _obj === 'function' ? _obj.prototype : _obj;
 
   if (Array.isArray(hooks)) {

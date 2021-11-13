@@ -1,4 +1,4 @@
-import { Middleware } from './compose.ts';
+import { AsyncMiddleware } from './compose.ts';
 import { copyToSelf, copyProperties } from './utils.ts';
 
 export const HOOKS: string = Symbol('@feathersjs/hooks') as any;
@@ -30,7 +30,7 @@ export type HookDefaultsInitializer = (self?: any, args?: any[], context?: HookC
 export class HookManager {
   _parent?: this|null = null;
   _params: string[]|null = null;
-  _middleware: Middleware[]|null = null;
+  _middleware: AsyncMiddleware[]|null = null;
   _props: HookContextData|null = null;
   _defaults?: HookDefaultsInitializer;
 
@@ -40,13 +40,13 @@ export class HookManager {
     return this;
   }
 
-  middleware (middleware?: Middleware[]) {
+  middleware (middleware?: AsyncMiddleware[]) {
     this._middleware = middleware?.length ? middleware : null;
 
     return this;
   }
 
-  getMiddleware (): Middleware[]|null {
+  getMiddleware (): AsyncMiddleware[]|null {
     const previous = this._parent?.getMiddleware();
 
     if (previous && this._middleware) {
@@ -56,7 +56,7 @@ export class HookManager {
     return previous || this._middleware;
   }
 
-  collectMiddleware (self: any, _args: any[]): Middleware[] {
+  collectMiddleware (self: any, _args: any[]): AsyncMiddleware[] {
     const otherMiddleware = getMiddleware(self);
     const middleware = this.getMiddleware();
 
@@ -178,7 +178,7 @@ export class HookManager {
   }
 }
 
-export type HookOptions = HookManager|Middleware[]|null;
+export type HookOptions = HookManager|AsyncMiddleware[]|null;
 
 export function convertOptions (options: HookOptions = null) {
   if (!options) {
@@ -200,13 +200,13 @@ export function setManager<T> (target: T, manager: HookManager) {
   return target;
 }
 
-export function getMiddleware (target: any): Middleware[]|null {
+export function getMiddleware (target: any): AsyncMiddleware[]|null {
   const manager = getManager(target);
 
   return manager ? manager.getMiddleware() : null;
 }
 
-export function setMiddleware<T> (target: T, middleware: Middleware[]) {
+export function setMiddleware<T> (target: T, middleware: AsyncMiddleware[]) {
   const manager = new HookManager().middleware(middleware);
 
   return setManager(target, manager);

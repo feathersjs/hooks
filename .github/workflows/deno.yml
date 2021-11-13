@@ -13,14 +13,6 @@ jobs:
         uses: denolib/setup-deno@v2
         with:
           deno-version: v1.x
-        
-      - name: Install Node.js 14
-        uses: actions/setup-node@v1
-        with:
-          node-version: 14
-      
-      - name: Install build tooling
-        run: npm install
-      
+
       - name: Run Tests
-        run: npm run test:deno
+        run: deno test main/**/test/*.test.ts

@@ -1,9 +1,10 @@
 // TypeScript port of koa-compose (https://github.com/koajs/compose)
 export type NextFunction = () => Promise<any>;
 
-export type Middleware<T = any> = (context: T, next: NextFunction) => Promise<any>;
+export type AsyncMiddleware<T = any> = (context: T, next: NextFunction) => Promise<any>;
+export type Middleware<T = any> = AsyncMiddleware<T>;
 
-export function compose<T = any> (middleware: Middleware<T>[]) {
+export function compose<T = any> (middleware: AsyncMiddleware<T>[]) {
   if (!Array.isArray(middleware)) {
     throw new TypeError('Middleware stack must be an array!');
   }
@@ -14,7 +15,7 @@ export function compose<T = any> (middleware: Middleware<T>[]) {
     }
   }
 
-  return function (this: any, context: T, next?: Middleware<T>) {
+  return function (this: any, context: T, next?: AsyncMiddleware<T>) {
     // last called middleware #
     let index: number = -1;
 
@@ -27,7 +28,7 @@ export function compose<T = any> (middleware: Middleware<T>[]) {
 
       index = i;
 
-      let fn: Middleware|undefined = middleware[i];
+      let fn: AsyncMiddleware|undefined = middleware[i];
 
       if (i === middleware.length) {
         fn = next;
