@@ -66,3 +66,4 @@ dist/
 *.sqlite
 
 packages/
+/cov_profile
