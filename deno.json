@@ -1,10 +1,7 @@
 {
-  "compilerOptions": {
-    "strict": true
-  },
   "lint": {
     "files": {
-      "include": ["main/**/*.ts"],
+      "include": ["main"],
       "exclude": []
     },
     "rules": {
@@ -19,11 +16,10 @@
       "exclude": []
     },
     "options": {
-      "useTabs": true,
+      "useTabs": false,
       "lineWidth": 120,
       "indentWidth": 2,
-      "singleQuote": true,
-      "proseWrap": "preserve"
+      "singleQuote": true
     }
   }
 }

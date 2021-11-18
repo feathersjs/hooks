@@ -1,22 +1,22 @@
-import { it, assertEquals, assertStrictEquals, assert, assertThrows } from './dependencies.ts';
-import { hooks, middleware, HookContext, NextFunction } from '../src/index.ts';
+import { assert, assertEquals, assertStrictEquals, assertThrows, it } from './dependencies.ts';
+import { HookContext, hooks, middleware, NextFunction } from '../src/index.ts';
 
 interface HookableObject {
   test: string;
-  sayHi (name: string): Promise<string>;
-  addOne (number: number): Promise<number>;
+  sayHi(name: string): Promise<string>;
+  addOne(number: number): Promise<number>;
 }
 
-const getObject = () : HookableObject => ({
+const getObject = (): HookableObject => ({
   test: 'me',
 
-  async sayHi (name: string) {
+  async sayHi(name: string) {
     return `Hi ${name}`;
   },
 
-  async addOne (number: number) {
+  async addOne(number: number) {
     return number + 1;
-  }
+  },
 });
 
 it('hooks object with hook methods, sets method name', async () => {
@@ -25,11 +25,14 @@ it('hooks object with hook methods, sets method name', async () => {
   const hookedObj = hooks(obj, {
     sayHi: middleware([async (ctx: HookContext, next: NextFunction) => {
       assertEquals(ctx.method, 'sayHi');
-      assertEquals(ctx, new (obj.sayHi as any).Context({
-        arguments: [ 'David' ],
-        method: 'sayHi',
-        self: obj
-      }));
+      assertEquals(
+        ctx,
+        new (obj.sayHi as any).Context({
+          arguments: ['David'],
+          method: 'sayHi',
+          self: obj,
+        }),
+      );
 
       await next();
 
@@ -39,7 +42,7 @@ it('hooks object with hook methods, sets method name', async () => {
       ctx.arguments[0] += 1;
 
       await next();
-    }])
+    }]),
   });
 
   assertStrictEquals(obj, hookedObj);
@@ -51,12 +54,15 @@ it('hooks object and allows to customize context for method', async () => {
   const obj = getObject();
   const hookedObj = hooks(obj, {
     sayHi: middleware([async (ctx: HookContext, next: NextFunction) => {
-      assertEquals(ctx, new (obj.sayHi as any).Context({
-        arguments: ['David'],
-        method: 'sayHi',
-        name: 'David',
-        self: obj
-      }));
+      assertEquals(
+        ctx,
+        new (obj.sayHi as any).Context({
+          arguments: ['David'],
+          method: 'sayHi',
+          name: 'David',
+          self: obj,
+        }),
+      );
 
       ctx.name = 'Dave';
 
@@ -69,7 +75,7 @@ it('hooks object and allows to customize context for method', async () => {
       ctx.arguments[0] += 1;
 
       await next();
-    }])
+    }]),
   });
 
   assertStrictEquals(obj, hookedObj);
@@ -85,7 +91,7 @@ it('hooking multiple times works properly', async () => {
       await next();
 
       ctx.result += '?';
-    }])
+    }]),
   });
 
   hooks(obj, {
@@ -93,7 +99,7 @@ it('hooking multiple times works properly', async () => {
       await next();
 
       ctx.result += '!';
-    }])
+    }]),
   });
 
   assertEquals(await obj.sayHi('David'), 'Hi David!?');
@@ -102,11 +108,16 @@ it('hooking multiple times works properly', async () => {
 it('throws an error when hooking invalid method', async () => {
   const obj = getObject();
 
-  assertThrows(() => hooks(obj, {
-    test: middleware([async (_ctx, next) => {
-      await next();
-    }])
-  }), undefined, `Can not apply hooks. 'test' is not a function`);
+  assertThrows(
+    () =>
+      hooks(obj, {
+        test: middleware([async (_ctx, next) => {
+          await next();
+        }]),
+      }),
+    undefined,
+    `Can not apply hooks. 'test' is not a function`,
+  );
 });
 
 it('works with object level hooks', async () => {
@@ -117,7 +128,7 @@ it('works with object level hooks', async () => {
       await next();
 
       ctx.result += '!';
-    }
+    },
   ]);
 
   hooks(obj, {
@@ -125,7 +136,7 @@ it('works with object level hooks', async () => {
       await next();
 
       ctx.result += '?';
-    }])
+    }]),
   });
 
   assertEquals(await obj.sayHi('Dave'), 'Hi Dave?!');

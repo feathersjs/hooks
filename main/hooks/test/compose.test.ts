@@ -1,12 +1,12 @@
 // Adapted from koa-compose (https://github.com/koajs/compose)
-import { it, assert, assertEquals, assertThrows, assertStrictEquals } from './dependencies.ts';
+import { assert, assertEquals, assertStrictEquals, assertThrows, it } from './dependencies.ts';
 import { compose, NextFunction } from '../src/index.ts';
 
-function wait (ms: number) {
+function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms || 1));
 }
 
-function isPromise (x: any) {
+function isPromise(x: any) {
   return x && typeof x.then === 'function';
 }
 
@@ -88,7 +88,7 @@ it('compose: should only accept an array', async () => {
     // @ts-ignore test without args
     () => compose(),
     undefined,
-    'Middleware stack must be an array!'
+    'Middleware stack must be an array!',
   );
 });
 
@@ -116,7 +116,7 @@ it('compose: should only accept middleware as functions', () => {
   assertThrows(
     () => compose([{}] as any),
     undefined,
-    'Middleware must be composed of functions!'
+    'Middleware must be composed of functions!',
   );
 });
 
@@ -136,7 +136,9 @@ it('compose: should work when yielding at the end of the stack', async () => {
 it('compose: should reject on errors in middleware', () => {
   const stack = [];
 
-  stack.push(() => { throw new Error(); });
+  stack.push(() => {
+    throw new Error();
+  });
 
   return compose(stack)({})
     .then(function () {
@@ -232,12 +234,12 @@ it('compose: should compose w/ other compositions', () => {
       (_ctx, next) => {
         called.push(2);
         return next();
-      }
+      },
     ]),
     (_ctx, next) => {
       called.push(3);
       return next();
-    }
+    },
   ])({}).then(() => assertEquals(called, [1, 2, 3]));
 });
 
@@ -246,7 +248,7 @@ it('compose: should throw if next() is called multiple times', () => {
     async (_ctx, next) => {
       await next();
       await next();
-    }
+    },
   ])({}).then(() => {
     throw new Error('boom');
   }, (err) => {
@@ -265,12 +267,12 @@ it('compose: should return a valid middleware', () => {
       (_ctx, next) => {
         val++;
         return next();
-      }
+      },
     ]),
     (_ctx, next) => {
       val++;
       return next();
-    }
+    },
   ])({}).then(function () {
     assertStrictEquals(val, 3);
   });
@@ -323,7 +325,7 @@ it('compose: should not get stuck on the passed in next', () => {
   }];
   const ctx = {
     middleware: 0,
-    next: 0
+    next: 0,
   };
 
   return compose(middleware)(ctx, async (ctx: any, next: NextFunction) => {

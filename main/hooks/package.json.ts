@@ -8,24 +8,24 @@ export default {
     'hooks',
     'hook',
     'async',
-    'middleware'
+    'middleware',
   ],
   license: 'MIT',
   repository: {
     type: 'git',
-    url: 'git://github.com/feathersjs/hooks.git'
+    url: 'git://github.com/feathersjs/hooks.git',
   },
   author: {
     name: 'Feathers contributor',
     email: 'hello@feathersjs.com',
-    url: 'https://feathersjs.com'
+    url: 'https://feathersjs.com',
   },
   contributors: [],
   bugs: {
-    url: 'https://github.com/feathersjs/hooks/issues'
+    url: 'https://github.com/feathersjs/hooks/issues',
   },
   engines: {
-    node: '>= 14'
+    node: '>= 14',
   },
   files: [
     'CHANGELOG.md',
@@ -34,9 +34,9 @@ export default {
     'src/**',
     'lib/**',
     'deno/**',
-    'dist/**'
+    'dist/**',
   ],
   publishConfig: {
-    access: 'public'
-  }
-}
+    access: 'public',
+  },
+};

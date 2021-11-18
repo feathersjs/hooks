@@ -1,5 +1,5 @@
 import { AsyncMiddleware } from './compose.ts';
-import { copyToSelf, copyProperties } from './utils.ts';
+import { copyProperties, copyToSelf } from './utils.ts';
 
 export const HOOKS: string = Symbol('@feathersjs/hooks') as any;
 
@@ -10,9 +10,9 @@ export type HookContextData = { [key: string]: any };
  */
 export class BaseHookContext<C = any> {
   self?: C;
-  [key: string]: any;
+  [key: string]: any
 
-  constructor (data: HookContextData = {}) {
+  constructor(data: HookContextData = {}) {
     Object.assign(this, data);
   }
 }
@@ -23,30 +23,36 @@ export interface HookContext<T = any, C = any> extends BaseHookContext<C> {
   arguments: any[];
 }
 
-export type HookContextConstructor = new (data?: { [key: string]: any }) => BaseHookContext;
+export type HookContextConstructor = new (
+  data?: { [key: string]: any },
+) => BaseHookContext;
 
-export type HookDefaultsInitializer = (self?: any, args?: any[], context?: HookContext) => HookContextData;
+export type HookDefaultsInitializer = (
+  self?: any,
+  args?: any[],
+  context?: HookContext,
+) => HookContextData;
 
 export class HookManager {
-  _parent?: this|null = null;
-  _params: string[]|null = null;
-  _middleware: AsyncMiddleware[]|null = null;
-  _props: HookContextData|null = null;
+  _parent?: this | null = null;
+  _params: string[] | null = null;
+  _middleware: AsyncMiddleware[] | null = null;
+  _props: HookContextData | null = null;
   _defaults?: HookDefaultsInitializer;
 
-  parent (parent: this|null) {
+  parent(parent: this | null) {
     this._parent = parent;
 
     return this;
   }
 
-  middleware (middleware?: AsyncMiddleware[]) {
+  middleware(middleware?: AsyncMiddleware[]) {
     this._middleware = middleware?.length ? middleware : null;
 
     return this;
   }
 
-  getMiddleware (): AsyncMiddleware[]|null {
+  getMiddleware(): AsyncMiddleware[] | null {
     const previous = this._parent?.getMiddleware();
 
     if (previous && this._middleware) {
@@ -56,7 +62,7 @@ export class HookManager {
     return previous || this._middleware;
   }
 
-  collectMiddleware (self: any, _args: any[]): AsyncMiddleware[] {
+  collectMiddleware(self: any, _args: any[]): AsyncMiddleware[] {
     const otherMiddleware = getMiddleware(self);
     const middleware = this.getMiddleware();
 
@@ -67,7 +73,7 @@ export class HookManager {
     return otherMiddleware || middleware || [];
   }
 
-  props (props: HookContextData) {
+  props(props: HookContextData) {
     if (!this._props) {
       this._props = {};
     }
@@ -77,7 +83,7 @@ export class HookManager {
     return this;
   }
 
-  getProps (): HookContextData|null {
+  getProps(): HookContextData | null {
     const previous = this._parent?.getProps();
 
     if (previous && this._props) {
@@ -87,13 +93,13 @@ export class HookManager {
     return previous || this._props || null;
   }
 
-  params (...params: string[]) {
+  params(...params: string[]) {
     this._params = params;
 
     return this;
   }
 
-  getParams (): string[]|null {
+  getParams(): string[] | null {
     const previous = this._parent?.getParams();
 
     if (previous && this._params) {
@@ -103,13 +109,17 @@ export class HookManager {
     return previous || this._params;
   }
 
-  defaults (defaults: HookDefaultsInitializer) {
+  defaults(defaults: HookDefaultsInitializer) {
     this._defaults = defaults;
 
     return this;
   }
 
-  getDefaults (self: any, args: any[], context: HookContext): HookContextData|null {
+  getDefaults(
+    self: any,
+    args: any[],
+    context: HookContext,
+  ): HookContextData | null {
     const defaults = typeof this._defaults === 'function' ? this._defaults(self, args, context) : null;
     const previous = this._parent?.getDefaults(self, args, context);
 
@@ -120,9 +130,11 @@ export class HookManager {
     return previous || defaults;
   }
 
-  getContextClass (Base: HookContextConstructor = BaseHookContext): HookContextConstructor {
+  getContextClass(
+    Base: HookContextConstructor = BaseHookContext,
+  ): HookContextConstructor {
     const ContextClass = class ContextClass extends Base {
-      constructor (data: any) {
+      constructor(data: any) {
         super(data);
 
         copyToSelf(this);
@@ -134,17 +146,19 @@ export class HookManager {
     if (params) {
       params.forEach((name, index) => {
         if (props?.[name] !== undefined) {
-          throw new Error(`Hooks can not have a property and param named '${name}'. Use .defaults instead.`);
+          throw new Error(
+            `Hooks can not have a property and param named '${name}'. Use .defaults instead.`,
+          );
         }
 
         Object.defineProperty(ContextClass.prototype, name, {
           enumerable: true,
-          get () {
+          get() {
             return this?.arguments[index];
           },
-          set (value: any) {
+          set(value: any) {
             this.arguments[index] = value;
-          }
+          },
         });
       });
     }
@@ -156,7 +170,7 @@ export class HookManager {
     return ContextClass;
   }
 
-  initializeContext (self: any, args: any[], context: HookContext): HookContext {
+  initializeContext(self: any, args: any[], context: HookContext): HookContext {
     const ctx = this._parent ? this._parent.initializeContext(self, args, context) : context;
     const defaults = this.getDefaults(self, args, ctx);
 
@@ -178,21 +192,21 @@ export class HookManager {
   }
 }
 
-export type HookOptions = HookManager|AsyncMiddleware[]|null;
+export type HookOptions = HookManager | AsyncMiddleware[] | null;
 
-export function convertOptions (options: HookOptions = null) {
+export function convertOptions(options: HookOptions = null) {
   if (!options) {
-    return new HookManager()
+    return new HookManager();
   }
 
   return Array.isArray(options) ? new HookManager().middleware(options) : options;
 }
 
-export function getManager (target: any): HookManager|null {
+export function getManager(target: any): HookManager | null {
   return (target && target[HOOKS]) || null;
 }
 
-export function setManager<T> (target: T, manager: HookManager) {
+export function setManager<T>(target: T, manager: HookManager) {
   const parent = getManager(target);
 
   (target as any)[HOOKS] = manager.parent(parent);
@@ -200,13 +214,13 @@ export function setManager<T> (target: T, manager: HookManager) {
   return target;
 }
 
-export function getMiddleware (target: any): AsyncMiddleware[]|null {
+export function getMiddleware(target: any): AsyncMiddleware[] | null {
   const manager = getManager(target);
 
   return manager ? manager.getMiddleware() : null;
 }
 
-export function setMiddleware<T> (target: T, middleware: AsyncMiddleware[]) {
+export function setMiddleware<T>(target: T, middleware: AsyncMiddleware[]) {
   const manager = new HookManager().middleware(middleware);
 
   return setManager(target, manager);

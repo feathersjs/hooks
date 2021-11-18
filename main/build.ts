@@ -10,18 +10,16 @@ const buildModule = async (name: string) => {
   const filesToCopy = ['LICENSE', 'README.md'];
 
   await build({
-    entryPoints: [ path.join(inDir, 'src/index.ts') ],
+    entryPoints: [path.join(inDir, 'src/index.ts')],
     outDir,
     test: false,
     compilerOptions: {
-      importHelpers: false
+      importHelpers: false,
     },
-    package: hooksPackage
+    package: hooksPackage,
   });
 
-  filesToCopy.forEach(filename =>
-    Deno.copyFileSync(path.join(inDir, filename), path.join(outDir, filename))
-  );
-}
+  filesToCopy.forEach((filename) => Deno.copyFileSync(path.join(inDir, filename), path.join(outDir, filename)));
+};
 
 await buildModule('hooks');
