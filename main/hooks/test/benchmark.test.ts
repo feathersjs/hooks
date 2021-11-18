@@ -1,4 +1,4 @@
-import { it, assert, assertEquals, assertStrictEquals } from './dependencies.ts';
+import { it, assert } from './dependencies.ts';
 import { hooks, HookContext, NextFunction, middleware } from '../src/index.ts';
 
 const CYCLES = 100000;
