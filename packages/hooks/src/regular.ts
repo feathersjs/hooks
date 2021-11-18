@@ -2,79 +2,57 @@ import { compose } from './compose';
 import { HookContext } from './base';
 
 export type RegularMiddleware<T extends HookContext = any> = (context: T) => Promise<any> | any;
-
 export interface RegularHookMap {
   before?: RegularMiddleware[],
   after?: RegularMiddleware[],
   error?: RegularMiddleware[]
 }
 
-const mergeContext = (context: any) => (res: any) => {
-  if (res && res !== context) {
-    Object.assign(context, res);
-  }
-  return res;
+const runHook = (hook: RegularMiddleware, context: any, type?: string) => {
+  if (type) context.type = type;
+  return Promise.resolve(hook.call(context.self, context))
+    .then((res: any) => {
+      if (type) context.type = null;
+      if (res && res !== context) {
+        Object.assign(context, res);
+      }
+    });
 };
 
 export function fromBeforeHook (hook: RegularMiddleware) {
   return (context: any, next: any) => {
-    context.type = 'before';
-
-    return Promise.resolve(hook.call(context.self, context))
-      .then(mergeContext(context))
-      .then(() => {
-        context.type = null;
-        return next();
-      });
+    return runHook(hook, context, 'before').then(next);
   };
 }
 
 export function fromAfterHook (hook: RegularMiddleware) {
   return (context: any, next: any) => {
-    return next()
-      .then(() => {
-        context.type = 'after';
-        return hook.call(context.self, context);
-      })
-      .then(mergeContext(context))
-      .then(() => {
-        context.type = null;
-      });
-  };
+    return next().then(() => runHook(hook, context, 'after'));
+  }
 }
 
-export function fromErrorHooks (hooks: RegularMiddleware[]) {
+export function fromErrorHook (hook: RegularMiddleware) {
   return (context: any, next: any) => {
     return next().catch((error: any) => {
-      let promise: Promise<any> = Promise.resolve();
-
-      context.original = { ...context };
-      context.error = error;
-      context.type = 'error';
-
-      delete context.result;
-
-      for (const hook of hooks) {
-        promise = promise
-          .then(() => hook.call(context.self, context))
-          .then(mergeContext(context));
+      if (context.error !== error || context.result !== undefined) {
+        (context as any).original = { ...context };
+        context.error = error;
+        delete context.result;
       }
 
-      return promise.then(() => {
-        context.type = null;
-
-        if (context.result === undefined) {
+      return runHook(hook, context, 'error').then(() => {
+        if (context.result === undefined && context.error !== undefined) {
           throw context.error;
         }
       });
     });
-  };
+  }
 }
 
 export function collect ({ before = [], after = [], error = [] }: RegularHookMap) {
   const beforeHooks = before.map(fromBeforeHook);
   const afterHooks = [...after].reverse().map(fromAfterHook);
-  const errorHooks: any = fromErrorHooks(error);
+  const errorHooks: any = error.map(fromErrorHook);
 
-  return compose([errorHooks, ...afterHooks, ...beforeHooks]);
+  return compose([...errorHooks, ...afterHooks, ...beforeHooks]);
 }
