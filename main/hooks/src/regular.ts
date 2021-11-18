@@ -1,5 +1,5 @@
-import { compose } from './compose.ts';
-import { HookContext } from './base.ts';
+import { compose } from './compose';
+import { HookContext } from './base';
 
 export type RegularMiddleware<T extends HookContext = any> = (context: T) => Promise<any> | any;
 export interface RegularHookMap {
