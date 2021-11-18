@@ -85,7 +85,7 @@ it('compose: should be able to be called twice', () => {
 
 it('compose: should only accept an array', async () => {
   await assertThrows(
-    // @ts-ignore
+    // @ts-ignore test without args
     () => compose(),
     undefined,
     'Middleware stack must be an array!'
@@ -114,8 +114,7 @@ it('compose: should work with 0 middleware', function () {
 
 it('compose: should only accept middleware as functions', () => {
   assertThrows(
-    // @ts-ignore
-    () => compose([{}]),
+    () => compose([{}] as any),
     undefined,
     'Middleware must be composed of functions!'
   );

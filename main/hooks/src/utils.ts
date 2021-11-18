@@ -8,7 +8,7 @@ const hasProtoDefinitions = typeof proto.__lookupGetter__ === 'function' &&
 export function copyToSelf (target: any) {
   // tslint:disable-next-line
   for (const key in target) {
-    if (!target.hasOwnProperty(key)) {
+    if (!Object.hasOwnProperty.call(target, key)) {
       const getter = hasProtoDefinitions ? target.constructor.prototype.__lookupGetter__(key)
         : Object.getOwnPropertyDescriptor(target, key);
 

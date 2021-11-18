@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "strict": true
+  },
+  "lint": {
+    "files": {
+      "include": ["main/**/*.ts"],
+      "exclude": []
+    },
+    "rules": {
+      "tags": [],
+      "include": [],
+      "exclude": ["no-explicit-any", "require-await"]
+    }
+  },
+  "fmt": {
+    "files": {
+      "include": ["main/"],
+      "exclude": []
+    },
+    "options": {
+      "useTabs": true,
+      "lineWidth": 120,
+      "indentWidth": 2,
+      "singleQuote": true,
+      "proseWrap": "preserve"
+    }
+  }
+}

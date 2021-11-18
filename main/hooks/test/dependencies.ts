@@ -1,6 +1,6 @@
 export * from 'https://deno.land/std@0.114.0/testing/asserts.ts';
 
-export const it = (name: string, fn: () => any, only: boolean = false) => Deno.test({
+export const it = (name: string, fn: () => any, only = false) => Deno.test({
   only,
   name,
   fn

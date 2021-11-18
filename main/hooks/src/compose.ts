@@ -17,7 +17,7 @@ export function compose<T = any> (middleware: AsyncMiddleware<T>[]) {
 
   return function (this: any, context: T, next?: AsyncMiddleware<T>) {
     // last called middleware #
-    let index: number = -1;
+    let index = -1;
 
     return dispatch.call(this, 0);
 

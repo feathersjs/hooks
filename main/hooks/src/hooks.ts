@@ -62,7 +62,7 @@ export function functionHooks <F> (fn: F, managerOrMiddleware: HookOptions) {
       return new wrapper.Context(data);
     }
   });
-};
+}
 
 export type HookMap<O = any> = {
   [L in keyof O]?: HookOptions;
@@ -87,8 +87,8 @@ export function objectHooks (_obj: any, hooks: HookMap|AsyncMiddleware[]) {
     result[method] = functionHooks(fn, manager.props({ method }));
 
     return result;
-  }, obj);
-};
+  }, obj)
+}
 
 export const hookDecorator = (managerOrMiddleware?: HookOptions) => {
   const wrapper: any = (_target: any, method: string, descriptor: TypedPropertyDescriptor<any>): TypedPropertyDescriptor<any> => {
