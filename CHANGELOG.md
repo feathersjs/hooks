@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.7.0](https://github.com/feathersjs/hooks/compare/v0.6.5...v0.7.0) (2021-11-19)
+
+
+### Features
+
+* Add support for regular before, after and error hooks ([#92](https://github.com/feathersjs/hooks/issues/92)) ([8e4328f](https://github.com/feathersjs/hooks/commit/8e4328f0b6963305e81d64ce0a06dbfab56e594a))
+* Move development and publishing to Deno ([#93](https://github.com/feathersjs/hooks/issues/93)) ([c2a1b0b](https://github.com/feathersjs/hooks/commit/c2a1b0b03a4ba320df90d054c0b2fedbc382d6fe))
+
+
+
+
+
 
 ## [0.6.5](https://github.com/feathersjs/hooks/compare/v0.6.4...v0.6.5) (2021-04-20)
 
