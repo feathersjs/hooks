@@ -64,3 +64,6 @@ typings/
 lib/
 dist/
 *.sqlite
+
+/packages/
+/coverage/

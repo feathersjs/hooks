@@ -1,0 +1,25 @@
+{
+  "lint": {
+    "files": {
+      "include": ["main"],
+      "exclude": []
+    },
+    "rules": {
+      "tags": [],
+      "include": [],
+      "exclude": ["no-explicit-any", "require-await"]
+    }
+  },
+  "fmt": {
+    "files": {
+      "include": ["main/"],
+      "exclude": []
+    },
+    "options": {
+      "useTabs": false,
+      "lineWidth": 120,
+      "indentWidth": 2,
+      "singleQuote": true
+    }
+  }
+}

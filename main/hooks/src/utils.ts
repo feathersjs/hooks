@@ -5,11 +5,12 @@ const hasProtoDefinitions = typeof proto.__lookupGetter__ === 'function' &&
   typeof proto.__defineGetter__ === 'function' &&
   typeof proto.__defineSetter__ === 'function';
 
-export function copyToSelf (target: any) {
+export function copyToSelf(target: any) {
   // tslint:disable-next-line
   for (const key in target) {
-    if (!target.hasOwnProperty(key)) {
-      const getter = hasProtoDefinitions ? target.constructor.prototype.__lookupGetter__(key)
+    if (!Object.hasOwnProperty.call(target, key)) {
+      const getter = hasProtoDefinitions
+        ? target.constructor.prototype.__lookupGetter__(key)
         : Object.getOwnPropertyDescriptor(target, key);
 
       if (hasProtoDefinitions && getter) {
@@ -29,15 +30,17 @@ export function copyToSelf (target: any) {
   }
 }
 
-export function copyProperties <F> (target: F, ...originals: any[]) {
+export function copyProperties<F>(target: F, ...originals: any[]) {
   for (const original of originals) {
     const originalProps = (Object.keys(original) as any)
-        .concat(Object.getOwnPropertySymbols(original));
+      .concat(Object.getOwnPropertySymbols(original));
 
     for (const prop of originalProps) {
       const propDescriptor = Object.getOwnPropertyDescriptor(original, prop);
 
-      if (propDescriptor && !Object.prototype.hasOwnProperty.call(target, prop)) {
+      if (
+        propDescriptor && !Object.prototype.hasOwnProperty.call(target, prop)
+      ) {
         Object.defineProperty(target, prop, propDescriptor);
       }
     }
@@ -46,7 +49,7 @@ export function copyProperties <F> (target: F, ...originals: any[]) {
   return target;
 }
 
-export function copyFnProperties <F> (target: F, original : any) {
+export function copyFnProperties<F>(target: F, original: any) {
   const internalProps = ['name', 'length'];
 
   try {

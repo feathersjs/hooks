@@ -1,11 +1,13 @@
-import { compose } from './compose';
-import { HookContext } from './base';
+import { compose } from './compose.ts';
+import { HookContext } from './base.ts';
 
-export type RegularMiddleware<T extends HookContext = any> = (context: T) => Promise<any> | any;
+export type RegularMiddleware<T extends HookContext = any> = (
+  context: T,
+) => Promise<any> | any;
 export interface RegularHookMap {
-  before?: RegularMiddleware[],
-  after?: RegularMiddleware[],
-  error?: RegularMiddleware[]
+  before?: RegularMiddleware[];
+  after?: RegularMiddleware[];
+  error?: RegularMiddleware[];
 }
 
 const runHook = (hook: RegularMiddleware, context: any, type?: string) => {
@@ -19,19 +21,19 @@ const runHook = (hook: RegularMiddleware, context: any, type?: string) => {
     });
 };
 
-export function fromBeforeHook (hook: RegularMiddleware) {
+export function fromBeforeHook(hook: RegularMiddleware) {
   return (context: any, next: any) => {
     return runHook(hook, context, 'before').then(next);
   };
 }
 
-export function fromAfterHook (hook: RegularMiddleware) {
+export function fromAfterHook(hook: RegularMiddleware) {
   return (context: any, next: any) => {
     return next().then(() => runHook(hook, context, 'after'));
-  }
+  };
 }
 
-export function fromErrorHook (hook: RegularMiddleware) {
+export function fromErrorHook(hook: RegularMiddleware) {
   return (context: any, next: any) => {
     return next().catch((error: any) => {
       if (context.error !== error || context.result !== undefined) {
@@ -46,10 +48,12 @@ export function fromErrorHook (hook: RegularMiddleware) {
         }
       });
     });
-  }
+  };
 }
 
-export function collect ({ before = [], after = [], error = [] }: RegularHookMap) {
+export function collect(
+  { before = [], after = [], error = [] }: RegularHookMap,
+) {
   const beforeHooks = before.map(fromBeforeHook);
   const afterHooks = [...after].reverse().map(fromAfterHook);
   const errorHooks: any = error.map(fromErrorHook);

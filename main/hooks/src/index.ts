@@ -1,12 +1,11 @@
-import { Middleware } from './compose.ts';
-import {
-  HookManager, HookContextData, HookContext, HookContextConstructor, HookOptions
-} from './base.ts';
-import { functionHooks, hookDecorator, objectHooks, HookMap } from './hooks.ts';
+import { AsyncMiddleware } from './compose.ts';
+import { HookContext, HookContextConstructor, HookContextData, HookManager, HookOptions } from './base.ts';
+import { functionHooks, hookDecorator, HookMap, objectHooks } from './hooks.ts';
 
 export * from './hooks.ts';
 export * from './compose.ts';
 export * from './base.ts';
+export * from './regular.ts';
 
 export interface WrapperAddon<F> {
   original: F;
@@ -14,7 +13,10 @@ export interface WrapperAddon<F> {
   createContext: (data?: HookContextData) => HookContext;
 }
 
-export type WrappedFunction<F, T> = F&((...rest: any[]) => Promise<T>|Promise<HookContext>)&WrapperAddon<F>;
+export type WrappedFunction<F, T> =
+  & F
+  & ((...rest: any[]) => Promise<T> | Promise<HookContext>)
+  & WrapperAddon<F>;
 
 export type MiddlewareOptions = {
   params?: any;
@@ -27,7 +29,10 @@ export type MiddlewareOptions = {
  * @param mw The list of middleware
  * @param options Middleware options (params, default, props)
  */
-export function middleware (mw?: Middleware[], options?: MiddlewareOptions) {
+export function middleware(
+  mw?: AsyncMiddleware[],
+  options?: MiddlewareOptions,
+) {
   const manager = new HookManager().middleware(mw);
 
   if (options) {
@@ -55,9 +60,9 @@ export function middleware (mw?: Middleware[], options?: MiddlewareOptions) {
  * @param manager An array of middleware or hook settings
  * (`middleware([]).params()` etc.)
  */
-export function hooks<F, T = any> (
-    fn: F&(() => void),
-    manager?: HookManager
+export function hooks<F, T = any>(
+  fn: F & (() => void),
+  manager?: HookManager,
 ): WrappedFunction<F, T>;
 
 /**
@@ -66,21 +71,28 @@ export function hooks<F, T = any> (
  * @param hookMap A map of middleware settings where the
  * key is the method name.
  */
-export function hooks<O> (obj: O|(new (...args: any[]) => O), hookMap: HookMap<O>|Middleware[]): O;
+export function hooks<O>(
+  obj: O | (new (...args: any[]) => O),
+  hookMap: HookMap<O> | AsyncMiddleware[],
+): O;
 
 /**
  * Decorate a class method with hooks.
  * @param manager The hooks settings
  */
-export function hooks<T = any> (
-  manager?: HookOptions
+export function hooks<T = any>(
+  manager?: HookOptions,
 ): any;
 
 // Fallthrough to actual implementation
-export function hooks (...args: any[]) {
-  const [ target, _hooks ] = args;
+export function hooks(...args: any[]) {
+  const [target, _hooks] = args;
 
-  if (typeof target === 'function' && (_hooks instanceof HookManager || Array.isArray(_hooks) || args.length === 1)) {
+  if (
+    typeof target === 'function' &&
+    (_hooks instanceof HookManager || Array.isArray(_hooks) ||
+      args.length === 1)
+  ) {
     return functionHooks(target, _hooks);
   }
 
