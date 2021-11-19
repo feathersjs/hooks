@@ -4,6 +4,7 @@
     "packages/*"
   ],
   "version": "0.7.0",
+  "granularPathspec": false,
   "command": {
     "bootstrap": {
       "hoist": true
