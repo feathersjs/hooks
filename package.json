@@ -1,13 +1,4 @@
 {
   "name": "@feathersjs/hooks",
-  "private": true,
-  "scripts": {
-    "install": "lerna bootstrap",
-    "publish": "lerna publish && git push origin master",
-    "update-dependencies": "ncu -u && lerna exec -- ncu -u"
-  },
-  "devDependencies": {
-    "lerna": "^4.0.0",
-    "npm-check-updates": "^11.8.5"
-  }
+  "private": true
 }

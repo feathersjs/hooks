@@ -27,15 +27,6 @@ export default {
   engines: {
     node: '>= 14',
   },
-  files: [
-    'CHANGELOG.md',
-    'LICENSE',
-    'README.md',
-    'src/**',
-    'lib/**',
-    'deno/**',
-    'dist/**',
-  ],
   publishConfig: {
     access: 'public',
   },

@@ -65,5 +65,5 @@ lib/
 dist/
 *.sqlite
 
-packages/
-/cov_profile
+/packages/
+/coverage/
