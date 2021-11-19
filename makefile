@@ -2,7 +2,7 @@ format:
 	deno fmt main --config="deno.json"
 lint:
 	deno lint main --config="deno.json"
-test:
+test: format lint
 	deno test main/*/test/**.test.ts --coverage=cov_profile
 	deno coverage cov_profile
 npm:
