@@ -3,7 +3,7 @@ format:
 lint:
 	deno lint main --config="deno.json"
 test: format lint
-	deno test main/*/test/**.test.ts --coverage=cov_profile
+	deno test main --coverage=cov_profile
 	deno coverage cov_profile
 npm:
 	rm -rf packages/
