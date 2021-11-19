@@ -9,10 +9,13 @@
       "hoist": true
     },
     "publish": {
-      "allowBranch": "master",
+      "allowBranch": "main",
       "message": "chore(release): publish %s",
       "conventionalCommits": true,
       "createRelease": "github"
     }
-  }
+  },
+  "ignoreChanges": [
+    "packages/*"
+  ]
 }

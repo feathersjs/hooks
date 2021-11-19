@@ -1,6 +1,5 @@
 # Hooks
 
-[![CI GitHub action](https://github.com/feathersjs/hooks/workflows/Node%20CI/badge.svg)](https://github.com/feathersjs/hooks/actions?query=workflow%3A%22Node+CI%22)
 [![Deno CI](https://github.com/feathersjs/hooks/actions/workflows/deno.yml/badge.svg)](https://github.com/feathersjs/hooks/actions/workflows/deno.yml)
 [![Download Status](https://img.shields.io/npm/dm/@feathersjs/hooks.svg?style=flat-square)](https://www.npmjs.com/package/@feathersjs/hooks)
 

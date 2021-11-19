@@ -1,7 +1,6 @@
 <h1>@feathersjs/hooks</h1>
 
 [![Node CI](https://github.com/feathersjs/hooks/workflows/Node%20CI/badge.svg)](https://github.com/feathersjs/hooks/actions?query=workflow%3A%22Node+CI%22)
-[![Deno CI](https://github.com/feathersjs/hooks/actions/workflows/deno.yml/badge.svg)](https://github.com/feathersjs/hooks/actions/workflows/deno.yml)
 
 `@feathersjs/hooks` brings middleware-like functionality to any async JavaScript or TypeScript function.  It allows creation of composable and reusable workflows to handle functionality like
 
@@ -16,7 +15,7 @@
 This functionality can be added without having to change the original function. The pattern also keeps everything cleanly separated and testable.
 
 ```ts
-import { hooks, middleware } from '@feathersjs/hooks')
+import { hooks } from '@feathersjs/hooks';
 
 // We're going to wrap `sayHi` with hook middleware.
 class Hello {
@@ -32,11 +31,13 @@ const logRuntime = async (context, next) => {
   await next(); // In this example, `next` is `sayHi`.
 
   const duration = new Date().getTime() - start;
-  console.log(`Function '${context.method || '[no name]'}' returned '${context.result}' after ${duration}ms`);
+  console.log(`Function '${context.method}' returned '${context.result}' after ${duration}ms`);
 }
 
 // The `hooks` utility wraps `logRuntime` around `sayHi`.
-hooks(Hello, { sayHi: middleware([ logRuntime ]) });
+hooks(Hello, {
+  sayHi: [ logRuntime ]
+});
 
 // Calling `sayHi` will start by calling the `logRuntime` hook.
 (async () => {
@@ -50,8 +51,6 @@ The Hooks middleware pattern was originally implemented directly in [FeathersJS]
 
 See the [⚓ release post for a quick overview](https://blog.feathersjs.com/async-middleware-for-javascript-and-typescript-31a0f74c0d30).
 
-<!-- TOC -->
-
 - [Installation](#installation)
   - [Node](#node)
   - [Deno](#deno)
@@ -59,18 +58,18 @@ See the [⚓ release post for a quick overview](https://blog.feathersjs.com/asyn
 - [Documentation](#documentation)
   - [Intro to Async Hooks](#intro-to-async-hooks)
   - [The `hooks` Function](#the-hooks-function)
-    - [with a Function](#example-with-a-function)
-    - [with a Class or Object](#example-with-a-class)
-    - [`@hooks` Decorator](#the-hooks-decorator)
+    - [Example with a Function](#example-with-a-function)
+    - [Example with a Class](#example-with-a-class)
+    - [TypeScript with the `@hooks` Decorator](#typescript-with-the-hooks-decorator)
   - [The `middleware` Manager](#the-middleware-manager)
     - [params(...names)](#paramsnames)
     - [props(properties)](#propsproperties)
     - [defaults(callback)](#defaultscallback)
-  - [Global hooks](#global-hooks)
-    - [on an Object](#global-hooks-on-an-object)
-    - [on a Class](#global-hooks-on-a-class)
-      - [JavaScript Example](#global-hooks---javascript-example)
-      - [TypeScript Example](#global-hooks---typescript-example)
+  - [Global Hooks](#global-hooks)
+    - [Global Hooks on an Object](#global-hooks-on-an-object)
+    - [Global Hooks on a Class](#global-hooks-on-a-class)
+      - [JavaScript Example](#javascript-example)
+      - [TypeScript Example](#typescript-example)
   - [Hook Context](#hook-context)
     - [Context properties](#context-properties)
     - [Arguments](#arguments)
@@ -88,9 +87,8 @@ See the [⚓ release post for a quick overview](https://blog.feathersjs.com/asyn
   - [Cache](#cache)
   - [Permissions](#permissions)
   - [Cleaning up GraphQL resolvers](#cleaning-up-graphql-resolvers)
+- [Contributing](#contributing)
 - [License](#license)
-
-<!-- /TOC -->
 
 # Installation
 
@@ -103,7 +101,7 @@ yarn add @feathersjs/hooks
 
 ## Deno
 
-feathersjs/hooks releases are published to [deno.land/x/hooks](https://deno.land/x/hooks):
+`@feathersjs/hooks` releases are published to [deno.land/x/hooks](https://deno.land/x/hooks):
 
 ```ts
 import { hooks } from 'https://deno.land/x/hooks@x.x.x/deno/index.ts';
@@ -111,13 +109,7 @@ import { hooks } from 'https://deno.land/x/hooks@x.x.x/deno/index.ts';
 
 ## Browser
 
-`@feathersjs/hooks` is compatible with any module loader like Webpack and can be included in the browser directly via:
-
-```html
-<script type="text/javascript" src="//unpkg.com/@feathersjs/hooks@^0.2.0/dist/hooks.js"></script>
-```
-
-Which will make a `hooks` global variable available.
+The `@feathersjs/hooks` npm packages is compatible with any module loader like Webpack.
 
 # Documentation
 
@@ -207,7 +199,7 @@ hooks(Hello, { sayHi: [ logRuntime ] });
 })();
 ```
 
-### The `@hooks` Decorator
+### TypeScript with the `@hooks` Decorator
 
 With TypeScript, you can use `hooks` the same was as shown in the above JavaScript example, or you can use decorators. Using decorators requires the `experimentalDecorators` option in `tsconfig.json` to be enabled.
 
@@ -349,7 +341,7 @@ Similar to object hooks, class hooks modify the class (or class prototype). Just
 
 > __Note:__ Object or class level global hooks will only run if the method itself has been enabled for hooks. This can be done by registering hooks with an empty array.
 
-#### Global Hooks - JavaScript Example
+#### JavaScript Example
 
 ```js
 const { hooks } = require('@feathersjs/hooks');
@@ -397,7 +389,7 @@ hooks(HelloSayer, {
 })();
 ```
 
-#### Global Hooks - TypeScript Example
+#### TypeScript Example
 
 Using decorators in TypeScript also respects inheritance:
 
@@ -828,6 +820,23 @@ const resolvers = {
     ]).params('obj', 'args', 'context', 'info'))
   }
 }
+```
+
+# Contributing
+
+For general contribution information refer to the [Feathers contribution guideLINES](https://github.com/feathersjs/hooks/blob/master/.github/contributing.md).
+
+`@feathersjs/hooks` modules are written in TypeScript using [Deno](https://deno.land/) as the runtime. With Deno 1.16 or later installed you can start contributing by cloning this repository or your own fork via:
+
+```
+git clone git@github.com:feathersjs/hooks.git
+cd hooks/
+```
+
+And then run the tests via:
+
+```
+make test
 ```
 
 # License

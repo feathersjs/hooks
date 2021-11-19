@@ -17,4 +17,4 @@ npm:
 	npx lerna bootstrap
 
 publish: npm
-	npx lerna publish
+	npx lerna publish --no-granular-pathspec
