@@ -1,6 +1,6 @@
 <h1>@feathersjs/hooks</h1>
 
-[![Node CI](https://github.com/feathersjs/hooks/workflows/Node%20CI/badge.svg)](https://github.com/feathersjs/hooks/actions?query=workflow%3A%22Node+CI%22)
+[![Deno CI](https://github.com/feathersjs/hooks/actions/workflows/deno.yml/badge.svg)](https://github.com/feathersjs/hooks/actions/workflows/deno.yml)
 
 `@feathersjs/hooks` brings middleware-like functionality to any async JavaScript or TypeScript function.  It allows creation of composable and reusable workflows to handle functionality like
 
@@ -104,12 +104,12 @@ yarn add @feathersjs/hooks
 `@feathersjs/hooks` releases are published to [deno.land/x/hooks](https://deno.land/x/hooks):
 
 ```ts
-import { hooks } from 'https://deno.land/x/hooks@x.x.x/deno/index.ts';
+import { hooks } from 'https://deno.land/x/hooks@x.x.x/src/index.ts';
 ```
 
 ## Browser
 
-The `@feathersjs/hooks` npm packages is compatible with any module loader like Webpack.
+The `@feathersjs/hooks` npm package works in any modern browser and is compatible with any module loader like Webpack.
 
 # Documentation
 
