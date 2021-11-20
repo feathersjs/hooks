@@ -104,7 +104,7 @@ yarn add @feathersjs/hooks
 `@feathersjs/hooks` releases are published to [deno.land/x/hooks](https://deno.land/x/hooks):
 
 ```ts
-import { hooks } from 'https://deno.land/x/hooks@x.x.x/src/index.ts';
+import { hooks } from 'https://deno.land/x/hooks/src/index.ts';
 ```
 
 ## Browser

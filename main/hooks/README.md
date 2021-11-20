@@ -22,7 +22,7 @@ import { hooks } from '@feathersjs/hooks';
 ### Deno
 
 ```js
-import { hooks } from 'https://deno.land/x/hooks@x.x.x/deno/index.ts';
+import { hooks } from 'https://deno.land/x/hooks/src/index.ts';
 ```
 
 ## Documentation
