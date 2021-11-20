@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.7.2](https://github.com/feathersjs/hooks/compare/v0.7.1...v0.7.2) (2021-11-20)
+
+
+### Bug Fixes
+
+* Use proper Deno location ([c70b070](https://github.com/feathersjs/hooks/commit/c70b0706d6e2910cdfc6cf9f9dc71b63ed605fc7))
+
+
+
+
+
 ## [0.7.1](https://github.com/feathersjs/hooks/compare/v0.7.0...v0.7.1) (2021-11-20)
 
 
