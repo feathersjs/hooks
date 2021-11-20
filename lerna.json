@@ -5,6 +5,7 @@
   ],
   "version": "0.7.0",
   "granularPathspec": false,
+  "forcePublish": true,
   "command": {
     "bootstrap": {
       "hoist": true
