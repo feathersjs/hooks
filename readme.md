@@ -672,13 +672,16 @@ const handle_error = (context) => {
   /* Do some error handling */
 }
 
-const request_with_middleware = hooks(make_request, middleware(
-  collect({
-    before: [verify_auth],
-    after: [discard('password')],
-    error: [handle_error]
-  })
-))
+const request_with_middleware = hooks(
+  make_request,
+  middleware([
+    collect({
+      before: [verify_auth],
+      after: [discard('password')],
+      error: [handle_error]
+    })
+  ])
+)
 ```
 
 Or with a class:
@@ -700,13 +703,18 @@ const handle_error = (context) => {
   /* Do some error handling */
 }
 
-const request_with_middleware = hooks(DbAdapter, middleware({
-  create: collect({
-    before: [verify_auth],
-    after: [discard('password')],
-    error: [handle_error]
-  })
-}))
+const request_with_middleware = hooks(
+  DbAdapter,
+  {
+    create: middleware([
+      collect({
+        before: [verify_auth],
+        after: [discard('password')],
+        error: [handle_error]
+      })
+    ]),
+  }
+)
 ```
 
 # Best practises
