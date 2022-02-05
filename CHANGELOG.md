@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.7.3](https://github.com/feathersjs/hooks/compare/v0.7.2...v0.7.3) (2022-02-05)
+
+
+### Bug Fixes
+
+* **build:** Update DNT build system to fix Webpack builds ([#99](https://github.com/feathersjs/hooks/issues/99)) ([7b7033b](https://github.com/feathersjs/hooks/commit/7b7033b76c1f678352fff96a4873a88405c6ec76))
+
+
+
+
+
 ## [0.7.2](https://github.com/feathersjs/hooks/compare/v0.7.1...v0.7.2) (2021-11-20)
 
 
