@@ -1,5 +1,5 @@
 import * as path from 'https://deno.land/std@0.115.1/path/mod.ts';
-import { build } from 'https://deno.land/x/dnt@0.7.2/mod.ts';
+import { build } from 'https://deno.land/x/dnt@0.17.0/mod.ts';
 import hooksPackage from './hooks/package.json.ts';
 
 const __dirname = new URL('.', import.meta.url).pathname;
@@ -13,6 +13,7 @@ const buildModule = async (name: string) => {
     entryPoints: [path.join(inDir, 'src/index.ts')],
     outDir,
     test: false,
+    shims: {},
     compilerOptions: {
       importHelpers: false,
     },
