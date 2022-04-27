@@ -39,7 +39,7 @@ it('hooking object on class adds to the prototype', async () => {
         await next();
 
         ctx.result += '?';
-      },
+      }
     ]).params('name'),
 
     addOne: middleware([
@@ -47,7 +47,7 @@ it('hooking object on class adds to the prototype', async () => {
         ctx.arguments[0] += 1;
 
         await next();
-      },
+      }
     ]),
   });
 
@@ -55,6 +55,24 @@ it('hooking object on class adds to the prototype', async () => {
 
   assertEquals(await instance.sayHi('David'), 'Hi David?');
   assertEquals(await instance.addOne(1), 3);
+});
+
+it('hooking object works on function that has property', async () => {
+  const app = function () {}
+
+  app.sayHi = (name: string) => `Hello ${name}`;
+
+  hooks(app as any, {
+    sayHi: middleware([
+      async (ctx: HookContext, next: NextFunction) => {
+        await next();
+
+        ctx.result += '?';
+      },
+    ]).params('name')
+  });
+
+  assertEquals(await app.sayHi('David'), 'Hello David?');
 });
 
 it('works with inheritance', async () => {

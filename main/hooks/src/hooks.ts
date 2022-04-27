@@ -68,15 +68,14 @@ export type HookMap<O = any> = {
   [L in keyof O]?: HookOptions;
 };
 
-export function objectHooks(_obj: any, hooks: HookMap | AsyncMiddleware[]) {
-  const obj = typeof _obj === 'function' ? _obj.prototype : _obj;
-
+export function objectHooks(obj: any, hooks: HookMap | AsyncMiddleware[]) {
   if (Array.isArray(hooks)) {
     return setMiddleware(obj, hooks);
   }
 
-  return Object.keys(hooks).reduce((result, method) => {
-    const fn = obj[method];
+  for (const method of Object.keys(hooks)) {
+    const target = typeof obj[method] === 'function' ? obj : obj.prototype
+    const fn = target && target[method];
 
     if (typeof fn !== 'function') {
       throw new Error(`Can not apply hooks. '${method}' is not a function`);
@@ -84,10 +83,10 @@ export function objectHooks(_obj: any, hooks: HookMap | AsyncMiddleware[]) {
 
     const manager = convertOptions(hooks[method]);
 
-    result[method] = functionHooks(fn, manager.props({ method }));
-
-    return result;
-  }, obj);
+    target[method] = functionHooks(fn, manager.props({ method }));   
+  }
+  
+  return obj;
 }
 
 export const hookDecorator = (managerOrMiddleware?: HookOptions) => {
