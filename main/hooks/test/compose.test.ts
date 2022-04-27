@@ -182,7 +182,7 @@ it('compose: should catch downstream errors', async () => {
       arr.push(6);
       await next();
       arr.push(7);
-    } catch (err) {
+    } catch (_err) {
       arr.push(2);
     }
     arr.push(3);

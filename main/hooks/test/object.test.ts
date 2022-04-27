@@ -1,4 +1,4 @@
-import { assert, assertEquals, assertStrictEquals, assertThrows, it } from './dependencies.ts';
+import { assertEquals, assertStrictEquals, assertThrows, it } from './dependencies.ts';
 import { HookContext, hooks, middleware, NextFunction } from '../src/index.ts';
 
 interface HookableObject {
