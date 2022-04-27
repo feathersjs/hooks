@@ -74,7 +74,7 @@ export function objectHooks(obj: any, hooks: HookMap | AsyncMiddleware[]) {
   }
 
   for (const method of Object.keys(hooks)) {
-    const target = typeof obj[method] === 'function' ? obj : obj.prototype
+    const target = typeof obj[method] === 'function' ? obj : obj.prototype;
     const fn = target && target[method];
 
     if (typeof fn !== 'function') {
@@ -83,9 +83,9 @@ export function objectHooks(obj: any, hooks: HookMap | AsyncMiddleware[]) {
 
     const manager = convertOptions(hooks[method]);
 
-    target[method] = functionHooks(fn, manager.props({ method }));   
+    target[method] = functionHooks(fn, manager.props({ method }));
   }
-  
+
   return obj;
 }
 

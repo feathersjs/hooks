@@ -1,4 +1,4 @@
-import { assert, assertEquals, assertThrows, it } from './dependencies.ts';
+import { assertEquals, assertThrows, it } from './dependencies.ts';
 import { HookContext, hooks, middleware, NextFunction } from '../src/index.ts';
 
 it('hook decorator on method and classes with inheritance', async () => {
