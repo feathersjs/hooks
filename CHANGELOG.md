@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.7.4](https://github.com/feathersjs/hooks/compare/v0.7.3...v0.7.4) (2022-04-27)
+
+
+### Bug Fixes
+
+* **hooks:** Allow hooks on functions that have properties ([#102](https://github.com/feathersjs/hooks/issues/102)) ([eee7880](https://github.com/feathersjs/hooks/commit/eee7880918769c7dbcd2b48853fea0148dc23951))
+
+
+
+
+
 ## [0.7.3](https://github.com/feathersjs/hooks/compare/v0.7.2...v0.7.3) (2022-02-05)
 
 
