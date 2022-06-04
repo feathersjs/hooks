@@ -107,6 +107,11 @@ it('collect: error hooks', async () => {
           ctx.result = 'result from error hook';
         }
       },
+      (ctx) => {
+        if (ctx.result === 'result from error hook') {
+          ctx.result += '!';
+        }
+      },
     ],
   });
 
@@ -140,5 +145,5 @@ it('collect: error hooks', async () => {
     'in error hook',
   );
 
-  assertStrictEquals(await service.create('result'), 'result from error hook');
+  assertStrictEquals(await service.create('result'), 'result from error hook!');
 });
