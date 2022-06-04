@@ -21,10 +21,12 @@ export const runHook = (hook: RegularMiddleware, context: any, type?: string) =>
     });
 };
 
-export const runHooks = (hooks: RegularMiddleware[]) => (context: any) => hooks.reduce(
-  (promise, hook) => promise.then(() => runHook(hook, context)),
-  Promise.resolve(context),
-);
+export const runHooks = (hooks: RegularMiddleware[]) =>
+  (context: any) =>
+    hooks.reduce(
+      (promise, hook) => promise.then(() => runHook(hook, context)),
+      Promise.resolve(context),
+    );
 
 export function fromBeforeHook(hook: RegularMiddleware) {
   return (context: any, next: any) => {
@@ -63,5 +65,5 @@ export function collect(
   const afterHooks = [...after].reverse().map(fromAfterHook);
   const errorHooks = error.length ? [fromErrorHook(runHooks(error))] : [];
 
-  return compose([...errorHooks, ...afterHooks, ...beforeHooks]);
+  return compose([...errorHooks, ...beforeHooks, ...afterHooks]);
 }
