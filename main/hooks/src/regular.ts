@@ -10,7 +10,7 @@ export interface RegularHookMap {
   error?: RegularMiddleware[];
 }
 
-const runHook = (hook: RegularMiddleware, context: any, type?: string) => {
+export const runHook = (hook: RegularMiddleware, context: any, type?: string) => {
   if (type) context.type = type;
   return Promise.resolve(hook.call(context.self, context))
     .then((res: any) => {
@@ -20,6 +20,11 @@ const runHook = (hook: RegularMiddleware, context: any, type?: string) => {
       }
     });
 };
+
+export const runHooks = (hooks: RegularMiddleware[]) => (context: any) => hooks.reduce(
+  (promise, hook) => promise.then(() => runHook(hook, context)),
+  Promise.resolve(context),
+);
 
 export function fromBeforeHook(hook: RegularMiddleware) {
   return (context: any, next: any) => {
@@ -56,7 +61,7 @@ export function collect(
 ) {
   const beforeHooks = before.map(fromBeforeHook);
   const afterHooks = [...after].reverse().map(fromAfterHook);
-  const errorHooks: any = error.map(fromErrorHook);
+  const errorHooks = error.length ? [fromErrorHook(runHooks(error))] : [];
 
   return compose([...errorHooks, ...afterHooks, ...beforeHooks]);
 }
