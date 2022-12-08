@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.7.6](https://github.com/feathersjs/hooks/compare/v0.7.5...v0.7.6) (2022-12-08)
+
+
+### Bug Fixes
+
+* restore `context.type` ([#104](https://github.com/feathersjs/hooks/issues/104)) ([1d934ae](https://github.com/feathersjs/hooks/commit/1d934aee85276b4585268dcaf4e6360d7b1137dc))
+
+
+
+
+
 ## [0.7.5](https://github.com/feathersjs/hooks/compare/v0.7.4...v0.7.5) (2022-06-04)
 
 

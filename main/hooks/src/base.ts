@@ -10,7 +10,7 @@ export type HookContextData = { [key: string]: any };
  */
 export class BaseHookContext<C = any> {
   self?: C;
-  [key: string]: any
+  [key: string]: any;
 
   constructor(data: HookContextData = {}) {
     Object.assign(this, data);

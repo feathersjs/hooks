@@ -22,12 +22,11 @@ export const runHook = (hook: RegularMiddleware, context: any, type?: string) =>
     });
 };
 
-export const runHooks = (hooks: RegularMiddleware[]) =>
-  (context: any) =>
-    hooks.reduce(
-      (promise, hook) => promise.then(() => runHook(hook, context)),
-      Promise.resolve(context),
-    );
+export const runHooks = (hooks: RegularMiddleware[]) => (context: any) =>
+  hooks.reduce(
+    (promise, hook) => promise.then(() => runHook(hook, context)),
+    Promise.resolve(context),
+  );
 
 export function fromBeforeHook(hook: RegularMiddleware) {
   return (context: any, next: any) => {
