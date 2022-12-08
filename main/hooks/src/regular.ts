@@ -11,10 +11,11 @@ export interface RegularHookMap {
 }
 
 export const runHook = (hook: RegularMiddleware, context: any, type?: string) => {
+  const typeBefore = context.type;
   if (type) context.type = type;
   return Promise.resolve(hook.call(context.self, context))
     .then((res: any) => {
-      if (type) context.type = null;
+      if (type) context.type = typeBefore;
       if (res && res !== context) {
         Object.assign(context, res);
       }
