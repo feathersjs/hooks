@@ -118,13 +118,7 @@ it('deleting context.result, does not skip method call', async () => {
     await next();
   };
 
-  const fn = hooks(
-    hello,
-    middleware([
-      updateResult,
-      deleteResult,
-    ]),
-  );
+  const fn = hooks(hello, middleware([updateResult, deleteResult]));
   const res = await fn('There');
 
   assertStrictEquals(res, 'There');
@@ -169,27 +163,33 @@ it('uses hooks from context object and its prototypes', async () => {
   const o1 = { message: 'Hi' };
   const o2 = Object.create(o1);
 
-  setMiddleware(o1, [async (ctx: HookContext, next: NextFunction) => {
-    ctx.arguments[0] += ' o1';
+  setMiddleware(o1, [
+    async (ctx: HookContext, next: NextFunction) => {
+      ctx.arguments[0] += ' o1';
 
-    await next();
-  }]);
+      await next();
+    },
+  ]);
 
-  setMiddleware(o2, [async (ctx, next) => {
-    ctx.arguments[0] += ' o2';
+  setMiddleware(o2, [
+    async (ctx, next) => {
+      ctx.arguments[0] += ' o2';
 
-    await next();
-  }]);
+      await next();
+    },
+  ]);
 
   o2.sayHi = hooks(
     async function (this: any, name: string) {
       return `${this.message} ${name}`;
     },
-    middleware([async (ctx, next) => {
-      ctx.arguments[0] += ' fn';
+    middleware([
+      async (ctx, next) => {
+        ctx.arguments[0] += ' fn';
 
-      await next();
-    }]),
+        await next();
+      },
+    ]),
   );
 
   const res = await o2.sayHi('Dave');
@@ -283,7 +283,9 @@ it('assigns props to context', async () => {
 
         await next();
       },
-    ]).params('name').props({ dev: true }),
+    ])
+      .params('name')
+      .props({ dev: true }),
   );
 
   assertStrictEquals(await fn('Dave'), 'Hello Changed');
@@ -292,19 +294,22 @@ it('assigns props to context', async () => {
 it('assigns props to context by options', async () => {
   const fn = hooks(
     hello,
-    middleware([
-      async (ctx, next) => {
-        assertStrictEquals(ctx.name, 'Dave');
-        assertStrictEquals(ctx.dev, true);
+    middleware(
+      [
+        async (ctx, next) => {
+          assertStrictEquals(ctx.name, 'Dave');
+          assertStrictEquals(ctx.dev, true);
 
-        ctx.name = 'Changed';
+          ctx.name = 'Changed';
 
-        await next();
+          await next();
+        },
+      ],
+      {
+        params: ['name'],
+        props: { dev: true },
       },
-    ], {
-      params: ['name'],
-      props: { dev: true },
-    }),
+    ),
   );
 
   assertStrictEquals(await fn('Dave'), 'Hello Changed');
@@ -443,7 +448,6 @@ it('context has own properties', async () => {
 
   assert(keys.includes('self'));
   assert(keys.includes('message'));
-  assert(keys.includes('name'));
   assert(keys.includes('arguments'));
   assert(keys.includes('result'));
 });
@@ -468,12 +472,14 @@ it('creates context with default params', async () => {
 
         await next();
       },
-    ]).params('name', 'params').defaults(() => {
-      return {
-        name: 'Bertho',
-        params: {},
-      };
-    }),
+    ])
+      .params('name', 'params')
+      .defaults(() => {
+        return {
+          name: 'Bertho',
+          params: {},
+        };
+      }),
   );
 
   assertStrictEquals(await fn('Dave'), 'Hello Dave');

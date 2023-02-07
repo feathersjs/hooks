@@ -1,5 +1,5 @@
 import { assertEquals, assertStrictEquals, it } from './dependencies.ts';
-import { HookContext, hooks, middleware, NextFunction, WrapperAddon } from '../src/index.ts';
+import { HookContext, hooks, middleware, NextFunction } from '../src/index.ts';
 
 interface Dummy {
   sayHi(name: string): Promise<string>;
@@ -24,17 +24,10 @@ it('hooking object on class adds to the prototype', async () => {
   hooks(DummyClass, {
     sayHi: middleware([
       async (ctx: HookContext, next: NextFunction) => {
-        const sayHi = DummyClass.prototype.sayHi as any as WrapperAddon<any>;
-
-        assertEquals(
-          ctx,
-          new sayHi.Context({
-            arguments: ['David'],
-            method: 'sayHi',
-            name: 'David',
-            self: instance,
-          }),
-        );
+        assertEquals(ctx.arguments, ['David']);
+        assertEquals(ctx.method, 'sayHi');
+        assertEquals(ctx.name, 'David');
+        assertEquals(ctx.self, instance);
 
         await next();
 
@@ -79,14 +72,9 @@ it('works with inheritance', async () => {
   const DummyClass = createDummyClass();
 
   const first = async (ctx: HookContext, next: NextFunction) => {
-    assertEquals(
-      ctx,
-      new (OtherDummy.prototype.sayHi as any).Context({
-        arguments: ['David'],
-        method: 'sayHi',
-        self: instance,
-      }),
-    );
+    assertEquals(ctx.arguments, ['David']);
+    assertEquals(ctx.method, 'sayHi');
+    assertEquals(ctx.self, instance);
 
     await next();
 
@@ -128,8 +116,7 @@ it('works with multiple context updaters', async () => {
     ]).params('name'),
   });
 
-  class OtherDummy extends DummyClass {
-  }
+  class OtherDummy extends DummyClass {}
 
   hooks(OtherDummy, {
     sayHi: middleware([

@@ -20,7 +20,7 @@ let threshold: number;
 
 (async () => {
   baseline = await getRuntime(() => hello('Dave'));
-  threshold = baseline * 25; // TODO might be improved further
+  threshold = baseline * 10;
 })();
 
 it('empty hook', async () => {
@@ -57,7 +57,9 @@ it('single hook, withParams and props', async () => {
       async (_ctx: HookContext, next: NextFunction) => {
         await next();
       },
-    ]).params('name').props({ dave: true }),
+    ])
+      .params('name')
+      .props({ dave: true }),
   );
 
   const runtime = await getRuntime(() => hookHello('Dave'));
