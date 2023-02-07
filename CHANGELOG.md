@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.8.0](https://github.com/feathersjs/hooks/compare/v0.7.6...v0.8.0) (2023-02-07)
+
+
+### Bug Fixes
+
+* **hooks:** Update context.error in error hooks ([#107](https://github.com/feathersjs/hooks/issues/107)) ([d148869](https://github.com/feathersjs/hooks/commit/d148869c4f41e700e92e0d7e14a19b63690c4521))
+
+
+### Features
+
+* **hooks:** Performance improvement ([#106](https://github.com/feathersjs/hooks/issues/106)) ([c14d07c](https://github.com/feathersjs/hooks/commit/c14d07c0cb4674056c6aadb14dd6f808399a95a3))
+
+
+
+
+
 ## [0.7.6](https://github.com/feathersjs/hooks/compare/v0.7.5...v0.7.6) (2022-12-08)
 
 
