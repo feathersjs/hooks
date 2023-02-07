@@ -10,16 +10,19 @@ export interface RegularHookMap {
   error?: RegularMiddleware[];
 }
 
-export const runHook = (hook: RegularMiddleware, context: any, type?: string) => {
+export const runHook = (
+  hook: RegularMiddleware,
+  context: any,
+  type?: string,
+) => {
   const typeBefore = context.type;
   if (type) context.type = type;
-  return Promise.resolve(hook.call(context.self, context))
-    .then((res: any) => {
-      if (type) context.type = typeBefore;
-      if (res && res !== context) {
-        Object.assign(context, res);
-      }
-    });
+  return Promise.resolve(hook.call(context.self, context)).then((res: any) => {
+    if (type) context.type = typeBefore;
+    if (res && res !== context) {
+      Object.assign(context, res);
+    }
+  });
 };
 
 export const runHooks = (hooks: RegularMiddleware[]) => (context: any) =>
@@ -49,18 +52,25 @@ export function fromErrorHook(hook: RegularMiddleware) {
         delete context.result;
       }
 
-      return runHook(hook, context, 'error').then(() => {
-        if (context.result === undefined && context.error !== undefined) {
+      return runHook(hook, context, 'error')
+        .then(() => {
+          if (context.result === undefined && context.error !== undefined) {
+            throw context.error;
+          }
+        })
+        .catch((error) => {
+          context.error = error;
           throw context.error;
-        }
-      });
+        });
     });
   };
 }
 
-export function collect(
-  { before = [], after = [], error = [] }: RegularHookMap,
-) {
+export function collect({
+  before = [],
+  after = [],
+  error = [],
+}: RegularHookMap) {
   const beforeHooks = before.map(fromBeforeHook);
   const afterHooks = [...after].reverse().map(fromAfterHook);
   const errorHooks = error.length ? [fromErrorHook(runHooks(error))] : [];
