@@ -1,5 +1,5 @@
 import { AsyncMiddleware } from './compose.ts';
-import { copyProperties, copyToSelf } from './utils.ts';
+import { copyProperties } from './utils.ts';
 
 export const HOOKS: string = Symbol('@feathersjs/hooks') as any;
 
@@ -23,9 +23,9 @@ export interface HookContext<T = any, C = any> extends BaseHookContext<C> {
   arguments: any[];
 }
 
-export type HookContextConstructor = new (
-  data?: { [key: string]: any },
-) => BaseHookContext;
+export type HookContextConstructor = new (data?: {
+  [key: string]: any;
+}) => BaseHookContext;
 
 export type HookDefaultsInitializer = (
   self?: any,
@@ -136,8 +136,6 @@ export class HookManager {
     const ContextClass = class ContextClass extends Base {
       constructor(data: any) {
         super(data);
-
-        copyToSelf(this);
       }
     };
     const params = this.getParams();

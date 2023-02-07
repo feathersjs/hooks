@@ -23,26 +23,24 @@ it('hooks object with hook methods, sets method name', async () => {
   const obj = getObject();
 
   const hookedObj = hooks(obj, {
-    sayHi: middleware([async (ctx: HookContext, next: NextFunction) => {
-      assertEquals(ctx.method, 'sayHi');
-      assertEquals(
-        ctx,
-        new (obj.sayHi as any).Context({
-          arguments: ['David'],
-          method: 'sayHi',
-          self: obj,
-        }),
-      );
+    sayHi: middleware([
+      async (ctx: HookContext, next: NextFunction) => {
+        assertEquals(ctx.arguments, ['David']);
+        assertEquals(ctx.method, 'sayHi');
+        assertEquals(ctx.self, obj);
 
-      await next();
+        await next();
 
-      ctx.result += '?';
-    }]),
-    addOne: middleware([async (ctx: HookContext, next: NextFunction) => {
-      ctx.arguments[0] += 1;
+        ctx.result += '?';
+      },
+    ]),
+    addOne: middleware([
+      async (ctx: HookContext, next: NextFunction) => {
+        ctx.arguments[0] += 1;
 
-      await next();
-    }]),
+        await next();
+      },
+    ]),
   });
 
   assertStrictEquals(obj, hookedObj);
@@ -53,29 +51,28 @@ it('hooks object with hook methods, sets method name', async () => {
 it('hooks object and allows to customize context for method', async () => {
   const obj = getObject();
   const hookedObj = hooks(obj, {
-    sayHi: middleware([async (ctx: HookContext, next: NextFunction) => {
-      assertEquals(
-        ctx,
-        new (obj.sayHi as any).Context({
-          arguments: ['David'],
-          method: 'sayHi',
-          name: 'David',
-          self: obj,
-        }),
-      );
+    sayHi: middleware([
+      async (ctx: HookContext, next: NextFunction) => {
+        assertEquals(ctx.arguments, ['David']);
+        assertEquals(ctx.method, 'sayHi');
+        assertEquals(ctx.name, 'David');
+        assertEquals(ctx.self, obj);
 
-      ctx.name = 'Dave';
+        ctx.name = 'Dave';
 
-      await next();
+        await next();
 
-      ctx.result += '?';
-    }]).params('name'),
+        ctx.result += '?';
+      },
+    ]).params('name'),
 
-    addOne: middleware([async (ctx: HookContext, next: NextFunction) => {
-      ctx.arguments[0] += 1;
+    addOne: middleware([
+      async (ctx: HookContext, next: NextFunction) => {
+        ctx.arguments[0] += 1;
 
-      await next();
-    }]),
+        await next();
+      },
+    ]),
   });
 
   assertStrictEquals(obj, hookedObj);
@@ -87,19 +84,23 @@ it('hooking multiple times works properly', async () => {
   const obj = getObject();
 
   hooks(obj, {
-    sayHi: middleware([async (ctx: HookContext, next: NextFunction) => {
-      await next();
+    sayHi: middleware([
+      async (ctx: HookContext, next: NextFunction) => {
+        await next();
 
-      ctx.result += '?';
-    }]),
+        ctx.result += '?';
+      },
+    ]),
   });
 
   hooks(obj, {
-    sayHi: middleware([async (ctx: HookContext, next: NextFunction) => {
-      await next();
+    sayHi: middleware([
+      async (ctx: HookContext, next: NextFunction) => {
+        await next();
 
-      ctx.result += '!';
-    }]),
+        ctx.result += '!';
+      },
+    ]),
   });
 
   assertEquals(await obj.sayHi('David'), 'Hi David!?');
@@ -111,9 +112,11 @@ it('throws an error when hooking invalid method', async () => {
   assertThrows(
     () =>
       hooks(obj, {
-        test: middleware([async (_ctx, next) => {
-          await next();
-        }]),
+        test: middleware([
+          async (_ctx, next) => {
+            await next();
+          },
+        ]),
       }),
     undefined,
     `Can not apply hooks. 'test' is not a function`,
@@ -132,11 +135,13 @@ it('works with object level hooks', async () => {
   ]);
 
   hooks(obj, {
-    sayHi: middleware([async (ctx: HookContext, next: NextFunction) => {
-      await next();
+    sayHi: middleware([
+      async (ctx: HookContext, next: NextFunction) => {
+        await next();
 
-      ctx.result += '?';
-    }]),
+        ctx.result += '?';
+      },
+    ]),
   });
 
   assertEquals(await obj.sayHi('Dave'), 'Hi Dave?!');
