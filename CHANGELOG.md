@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.8.1](https://github.com/feathersjs/hooks/compare/v0.8.0...v0.8.1) (2023-02-10)
+
+
+### Bug Fixes
+
+* **hooks:** Add toJSON to hook context ([#108](https://github.com/feathersjs/hooks/issues/108)) ([03e5883](https://github.com/feathersjs/hooks/commit/03e588344fb54066b8a3b178ca114d5925432745))
+
+
+
+
+
 # [0.8.0](https://github.com/feathersjs/hooks/compare/v0.7.6...v0.8.0) (2023-02-07)
 
 
