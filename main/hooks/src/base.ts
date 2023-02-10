@@ -15,6 +15,22 @@ export class BaseHookContext<C = any> {
   constructor(data: HookContextData = {}) {
     Object.assign(this, data);
   }
+
+  toJSON() {
+    const keys = Object.keys(this);
+    let proto = Object.getPrototypeOf(this);
+
+    while (proto) {
+      keys.push(...Object.keys(proto));
+      proto = Object.getPrototypeOf(proto);
+    }
+
+    return keys.reduce((result: this, key: string) => {
+      result[key] = this[key];
+
+      return result;
+    }, {} as this);
+  }
 }
 
 export interface HookContext<T = any, C = any> extends BaseHookContext<C> {

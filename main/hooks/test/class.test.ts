@@ -24,10 +24,12 @@ it('hooking object on class adds to the prototype', async () => {
   hooks(DummyClass, {
     sayHi: middleware([
       async (ctx: HookContext, next: NextFunction) => {
-        assertEquals(ctx.arguments, ['David']);
-        assertEquals(ctx.method, 'sayHi');
-        assertEquals(ctx.name, 'David');
-        assertEquals(ctx.self, instance);
+        assertEquals(ctx.toJSON(), {
+          arguments: ['David'],
+          method: 'sayHi',
+          name: 'David',
+          self: instance,
+        });
 
         await next();
 
