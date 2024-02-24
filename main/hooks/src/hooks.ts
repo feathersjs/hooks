@@ -1,5 +1,12 @@
 import { AsyncMiddleware, compose } from './compose.ts';
-import { convertOptions, HookContext, HookContextData, HookOptions, setManager, setMiddleware } from './base.ts';
+import {
+  convertOptions,
+  HookContext,
+  HookContextData,
+  HookOptions,
+  setManager,
+  setMiddleware
+} from './base.ts';
 import { copyFnProperties, copyProperties } from './utils.ts';
 
 export function getOriginal(fn: any): any {
@@ -23,7 +30,7 @@ export function functionHooks<F>(fn: F, managerOrMiddleware: HookOptions) {
     // Assemble the hook chain
     const hookChain: AsyncMiddleware[] = [
       // Return `ctx.result` or the context
-      (ctx, next) => next().then(() => returnContext ? ctx : ctx.result),
+      (ctx, next) => next().then(() => (returnContext ? ctx : ctx.result))
     ];
 
     // Create the hook chain by calling the `collectMiddleware function
@@ -41,7 +48,7 @@ export function functionHooks<F>(fn: F, managerOrMiddleware: HookOptions) {
             ctx.result = result;
 
             return next();
-          },
+          }
         );
       }
 
@@ -60,7 +67,7 @@ export function functionHooks<F>(fn: F, managerOrMiddleware: HookOptions) {
     Context: manager.getContextClass(),
     createContext: (data: HookContextData = {}) => {
       return new wrapper.Context(data);
-    },
+    }
   });
 }
 
@@ -90,10 +97,26 @@ export function objectHooks(obj: any, hooks: HookMap | AsyncMiddleware[]) {
 }
 
 export const hookDecorator = (managerOrMiddleware?: HookOptions) => {
+  return (target: any, context: DecoratorContext) => {
+    const manager = convertOptions(managerOrMiddleware);
+
+    if (context.kind === 'class') {
+      setManager(target.prototype, manager);
+      return target;
+    } else if (context.kind === 'method') {
+      const method = String(context.name);
+      return functionHooks(target, manager.props({ method }));
+    }
+
+    throw new Error('Can not apply hooks.');
+  };
+};
+
+export const legacyDecorator = (managerOrMiddleware?: HookOptions) => {
   const wrapper: any = (
     _target: any,
     method: string,
-    descriptor: TypedPropertyDescriptor<any>,
+    descriptor: TypedPropertyDescriptor<any>
   ): TypedPropertyDescriptor<any> => {
     const manager = convertOptions(managerOrMiddleware);
 

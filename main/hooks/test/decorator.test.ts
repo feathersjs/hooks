@@ -15,13 +15,15 @@ it('hook decorator on method and classes with inheritance', async () => {
   ])
   class TopLevel {}
 
-  @hooks([async (ctx, next) => {
-    ctx.arguments[0] += ' NameFromDummyClass';
+  @hooks([
+    async (ctx, next) => {
+      ctx.arguments[0] += ' NameFromDummyClass';
 
-    await next();
+      await next();
 
-    ctx.result += ' ResultFromDummyClass';
-  }])
+      ctx.result += ' ResultFromDummyClass';
+    },
+  ])
   class DummyClass extends TopLevel {
     @hooks(
       middleware([
@@ -63,6 +65,6 @@ it('error cases', () => {
   assertThrows(
     () => hooks([])({}, 'test', { value: 'not a function' }),
     undefined,
-    `Can not apply hooks. 'test' is not a function`,
+    `Can not apply hooks.`,
   );
 });
