@@ -1,7 +1,7 @@
 import { AsyncMiddleware } from './compose.ts';
 import { copyProperties } from './utils.ts';
 
-export const HOOKS: string = Symbol('@feathersjs/hooks') as any;
+export const HOOKS: string = Symbol.for('@feathersjs/hooks') as any;
 
 export type HookContextData = { [key: string]: any };
 
@@ -46,7 +46,7 @@ export type HookContextConstructor = new (data?: {
 export type HookDefaultsInitializer = (
   self?: any,
   args?: any[],
-  context?: HookContext,
+  context?: HookContext
 ) => HookContextData;
 
 export class HookManager {
@@ -134,9 +134,12 @@ export class HookManager {
   getDefaults(
     self: any,
     args: any[],
-    context: HookContext,
+    context: HookContext
   ): HookContextData | null {
-    const defaults = typeof this._defaults === 'function' ? this._defaults(self, args, context) : null;
+    const defaults =
+      typeof this._defaults === 'function'
+        ? this._defaults(self, args, context)
+        : null;
     const previous = this._parent?.getDefaults(self, args, context);
 
     if (previous && defaults) {
@@ -147,7 +150,7 @@ export class HookManager {
   }
 
   getContextClass(
-    Base: HookContextConstructor = BaseHookContext,
+    Base: HookContextConstructor = BaseHookContext
   ): HookContextConstructor {
     const ContextClass = class ContextClass extends Base {
       constructor(data: any) {
@@ -161,7 +164,7 @@ export class HookManager {
       params.forEach((name, index) => {
         if (props?.[name] !== undefined) {
           throw new Error(
-            `Hooks can not have a property and param named '${name}'. Use .defaults instead.`,
+            `Hooks can not have a property and param named '${name}'. Use .defaults instead.`
           );
         }
 
@@ -172,7 +175,7 @@ export class HookManager {
           },
           set(value: any) {
             this.arguments[index] = value;
-          },
+          }
         });
       });
     }
@@ -185,7 +188,9 @@ export class HookManager {
   }
 
   initializeContext(self: any, args: any[], context: HookContext): HookContext {
-    const ctx = this._parent ? this._parent.initializeContext(self, args, context) : context;
+    const ctx = this._parent
+      ? this._parent.initializeContext(self, args, context)
+      : context;
     const defaults = this.getDefaults(self, args, ctx);
 
     if (self) {
@@ -213,7 +218,9 @@ export function convertOptions(options: HookOptions = null) {
     return new HookManager();
   }
 
-  return Array.isArray(options) ? new HookManager().middleware(options) : options;
+  return Array.isArray(options)
+    ? new HookManager().middleware(options)
+    : options;
 }
 
 export function getManager(target: any): HookManager | null {
