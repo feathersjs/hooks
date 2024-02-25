@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.9.0](https://github.com/feathersjs/hooks/compare/v0.8.1...v0.9.0) (2024-02-25)
+
+
+### Bug Fixes
+
+* Use Symbol.for to register a single instance of all hooks ([#110](https://github.com/feathersjs/hooks/issues/110)) ([92a342e](https://github.com/feathersjs/hooks/commit/92a342e47253c162536f85342ddb1d90154b74ef))
+
+
+### Features
+
+* Move to TypeScript 5 non-experimental decorators ([#109](https://github.com/feathersjs/hooks/issues/109)) ([05bde46](https://github.com/feathersjs/hooks/commit/05bde4606635b8c43f11778867e7a3bc11f3c6a2))
+
+
+
+
+
 ## [0.8.1](https://github.com/feathersjs/hooks/compare/v0.8.0...v0.8.1) (2023-02-10)
 
 
