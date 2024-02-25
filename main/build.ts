@@ -1,5 +1,5 @@
 import * as path from 'https://deno.land/std@0.115.1/path/mod.ts';
-import { build } from 'https://deno.land/x/dnt@0.17.0/mod.ts';
+import { build } from 'https://deno.land/x/dnt@0.40.0/mod.ts';
 import hooksPackage from './hooks/package.json.ts';
 
 const __dirname = new URL('.', import.meta.url).pathname;
@@ -15,12 +15,14 @@ const buildModule = async (name: string) => {
     test: false,
     shims: {},
     compilerOptions: {
-      importHelpers: false,
+      importHelpers: false
     },
-    package: hooksPackage,
+    package: hooksPackage
   });
 
-  filesToCopy.forEach((filename) => Deno.copyFileSync(path.join(inDir, filename), path.join(outDir, filename)));
+  filesToCopy.forEach((filename) =>
+    Deno.copyFileSync(path.join(inDir, filename), path.join(outDir, filename))
+  );
 };
 
 await buildModule('hooks');

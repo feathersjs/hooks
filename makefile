@@ -15,6 +15,6 @@ npm:
 	rm -rf packages/
 	deno run -A main/build.ts
 	npx lerna bootstrap
-
+	
 publish: npm
 	npx lerna publish
